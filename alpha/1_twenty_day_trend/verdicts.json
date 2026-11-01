@@ -1,0 +1,19 @@
+{
+ "headline_label": "Jim's literal 20 day rule (sign of the 20 day average move, long/short, hold 1 day), out-of-sample net Sharpe",
+ "headline_value": "Crypto perps 0.72 (2024-01 -> 2026-10) | Commodities -0.18, FX 0.08 (2013 -> 2024-09) | All-markets equal-risk portfolio 0.63 (2018 -> 2026-10)",
+ "headline_verdict": "VERIFIED",
+ "a": "VERIFIED in crypto (t = 4.4), BUSTED in commodities and FX since 2000 (t = 0.15 and 0.56)",
+ "b": "NOT PROVEN: the in-sample best N won in 3 of 5 groups but lost in crypto (0.24 vs 0.72) and in the all-markets portfolio (0.46 vs 0.63). Picking N in-sample overstated Sharpe by 0.42 (all markets) to 1.52 (crypto perps).",
+ "c": "NOT PROVEN: the yearly Sharpe trend line slopes down in crypto (-0.17 a year), commodities and FX, but no slope is significant (all p > 0.15). Commodities and FX were already near zero for 2000-2024, which fits Jim's story that it died by the 80s.",
+ "d": "VERIFIED: 51% winning days, 33% winning trades, one drawdown lasted 3,237 days (May 2011 -> Mar 2020)",
+ "takeaways": [
+  "Jim's 20 day rule still works in crypto: 0.72 net Sharpe out of sample on 16 Binance perps (2024-01 -> 2026-10), beating buy and hold of the same coins at equal risk (0.47).",
+  "In commodities and FX (Jim's own markets) it is dead from 2000 on: 20 day OOS net Sharpe -0.18 for oil, gold, silver, gas and 0.08 for four FX pairs. That fits his 'by the 80s it wasn't' line. We have no 1960s-80s data to see the good years.",
+  "'See what worked best' is a trap: the best in-sample N for crypto was 193 days (Sharpe 1.76), which fell to 0.24 out of sample. Plain 20 kept 0.72. Per coin, the best IS N averaged 1.98 Sharpe in sample and -0.09 out of sample.",
+  "Slower trends (N about 100 to 190) were the in-sample winners in commodities, FX and index futures, and held up out of sample better than 20 there.",
+  "It fades, but slowly and noisily: crypto's yearly Sharpe falls about 0.17 a year (2020: 2.15, 2026: 1.12) but the slope is not significant (p = 0.27).",
+  "Not beautiful, just like Jim said: 51% winning days, 33% winning trades, and one drawdown in the all-markets portfolio lasted almost 9 years (2011 -> 2020).",
+  "Shorter bars die on costs: the same rule on 1h crypto bars has positive gross Sharpe (1.50 OOS at N=20 bars) but every N goes negative after 7 bp a side.",
+  "Jim's fees eat most of it: the best honest OOS version (all markets, N=20, long-only, 10% vol) made 11.2% a year before fees, 7.4% after 2 and 20, 3.5% after 5 and 44."
+ ]
+}

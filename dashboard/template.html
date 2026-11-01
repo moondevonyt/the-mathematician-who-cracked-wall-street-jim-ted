@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jim Simons Edge Test</title>
+<meta name="description" content="Moon Dev Edge Finder: Jim Simons' TED talk ideas (20 day trend, anomaly hunting, a machine learning machine, 5 and 44 fees) tested on real market data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+/* Moon Dev Edge Finder dashboard. Dark only: this is the screenshot. */
+:root{
+  --bg:#04060a;--bg2:#070a10;--panel:#0a0f17;--panel2:#0e141e;--line:#18212e;--line2:#243041;
+  --text:#eef3fa;--muted:#8d9ab0;--dim:#5a6679;
+  --green:#22f08a;--green2:#0f7a47;--red:#ff4262;--red2:#7a1426;--gold:#ffc53d;--gold2:#7a5a0c;--blue:#56b8ff;--violet:#b394ff;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--disp:'Space Grotesk','Inter',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden;background:
+  radial-gradient(1200px 600px at 15% -10%,rgba(34,240,138,.07),transparent 60%),
+  radial-gradient(900px 500px at 100% 0%,rgba(255,197,61,.06),transparent 60%),var(--bg)}
+a{color:var(--gold)}
+.mono{font-family:var(--mono)}
+.g{color:var(--green)}.r{color:var(--red)}.y{color:var(--gold)}.b{color:var(--blue)}.m{color:var(--muted)}.v2{color:var(--violet)}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:24px;padding:14px 40px;border-bottom:1px solid var(--line);background:rgba(4,6,10,.85);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
+.brand{font-family:var(--mono);font-weight:800;letter-spacing:.12em;font-size:14px;white-space:nowrap}
+.brand .moon{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);margin-right:8px;vertical-align:-1px}
+.brand b{color:var(--green)}
+.vid{flex:1;min-width:0;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vid b{color:var(--text);font-weight:600}
+.live{font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.1em;white-space:nowrap}
+.live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:8px;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,240,138,.6)}50%{opacity:.5;box-shadow:0 0 0 6px rgba(34,240,138,0)}}
+
+/* hero */
+.hero{overflow-x:clip;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:28px;padding:24px 40px 18px;max-width:1840px;margin:0 auto}
+.kicker{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+.hq{font-family:var(--disp);font-size:clamp(26px,2.5vw,46px);line-height:1.08;margin:10px 0 6px;font-weight:700;letter-spacing:-.01em}
+.hq em{font-style:normal;color:var(--green)}
+.hsub{color:var(--muted);font-size:clamp(13px,.95vw,17px);line-height:1.45}
+.hsub b{color:var(--text);font-weight:600}
+.bigrow{display:flex;align-items:flex-end;gap:clamp(12px,1.6vw,30px);margin-top:20px;position:relative;flex-wrap:wrap}
+.big{font-family:var(--mono);font-weight:800;line-height:.9;font-size:clamp(58px,6.2vw,128px);letter-spacing:-.04em}
+.big small{display:block;font-family:var(--mono);font-size:clamp(10px,.75vw,13px);letter-spacing:.14em;font-weight:600;margin-top:10px;color:var(--muted)}
+.big.up{color:var(--green);text-shadow:0 0 44px rgba(34,240,138,.4)}
+.big.down{color:var(--red);text-shadow:0 0 40px rgba(255,66,98,.4)}
+.vs{font-family:var(--mono);font-size:clamp(26px,3vw,60px);color:var(--dim);padding-bottom:clamp(20px,2.4vw,44px);font-weight:800}
+.stamp{margin-left:auto;align-self:center;font-family:var(--mono);font-weight:800;font-size:clamp(18px,1.9vw,34px);color:var(--gold);border:4px solid var(--gold);padding:6px 16px;border-radius:8px;transform:rotate(-7deg) scale(2);opacity:0;animation:stamp .5s 2.6s forwards cubic-bezier(.2,1.6,.4,1);letter-spacing:.08em;box-shadow:0 0 30px rgba(255,197,61,.3),inset 0 0 20px rgba(255,197,61,.15);white-space:nowrap;line-height:1.1;text-align:center}
+.stamp small{display:block;font-size:.42em;letter-spacing:.14em;color:#ffe3a1}
+@keyframes stamp{to{opacity:1;transform:rotate(-7deg) scale(1)}}
+
+/* race */
+.race{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--bg2));padding:12px 16px 14px;position:relative}
+.raceHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.raceHead .t{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.raceHead .t b{color:var(--text)}
+.tog{display:flex;gap:4px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:3px}
+.tog button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:6px 10px;border-radius:7px;border:0;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tog button.on{background:var(--gold);color:#120d00;font-weight:800}
+.raceBody{position:relative;height:calc(6 * 40px)}
+.rrow{position:absolute;left:0;right:0;height:36px;display:grid;grid-template-columns:minmax(150px,250px) 1fr 70px;gap:12px;align-items:center;transition:top .9s cubic-bezier(.3,1.3,.4,1)}
+.rname{font-size:13px;line-height:1.15;color:#c9d3e2;min-width:0}
+.rname b{display:block;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rname span{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rtrack{position:relative;height:22px}
+.rtrack .z{position:absolute;top:-6px;bottom:-6px;width:1px;background:var(--line2)}
+.rbar{position:absolute;top:0;height:100%;border-radius:5px;transition:left .9s cubic-bezier(.2,.9,.2,1),width .9s cubic-bezier(.2,.9,.2,1),background .5s}
+.rval{font-family:var(--mono);font-weight:800;font-size:18px;text-align:right}
+.rrow.me .rname b{color:var(--red)}
+.rrow.jim .rname b{color:var(--green)}
+.rrow.me .rbar{box-shadow:0 0 0 2px var(--red),0 0 16px rgba(255,66,98,.5)}
+.rrow.jim .rbar{box-shadow:0 0 0 2px var(--green),0 0 16px rgba(34,240,138,.45)}
+.raceFoot{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.45}
+.raceFoot b{color:var(--muted)}
+
+.answer{border:1px solid var(--line2);border-radius:18px;background:linear-gradient(180deg,#0c121c,#070a10);padding:22px 24px;position:relative;overflow:hidden}
+.answer:before{content:"";position:absolute;inset:0;background:radial-gradient(500px 220px at 100% 0,rgba(255,197,61,.08),transparent 70%);pointer-events:none}
+.q{font-family:var(--mono);font-size:13px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.a{font-family:var(--disp);font-weight:700;font-size:clamp(36px,3.4vw,64px);line-height:1;margin:6px 0 14px;color:var(--red)}
+.proofs{list-style:none;display:grid;gap:9px}
+.proofs li{display:grid;grid-template-columns:minmax(128px,auto) 1fr;gap:14px;align-items:center;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.35;color:#c9d3e2}
+.proofs li>b{font-family:var(--mono);font-weight:800;font-size:clamp(22px,1.8vw,32px);white-space:nowrap}
+.proofs li small{display:block;color:var(--dim);font-size:11.5px;margin-top:2px}
+.credit{margin-top:14px;font-size:12.5px;color:var(--dim);line-height:1.5}
+.credit b{color:var(--muted)}
+
+/* tape */
+.tape{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#06090e;overflow:hidden;white-space:nowrap;position:relative}
+.tape:before,.tape:after{content:"";position:absolute;top:0;bottom:0;width:80px;z-index:2}
+.tape:before{left:0;background:linear-gradient(90deg,#06090e,transparent)}.tape:after{right:0;background:linear-gradient(-90deg,#06090e,transparent)}
+.tapeIn{display:inline-block;animation:tape 240s linear infinite;padding:9px 0}
+@keyframes tape{to{transform:translateX(-50%)}}
+.ti{display:inline-block;font-family:var(--mono);font-size:13px;margin-right:30px;color:var(--muted)}
+.ti b{color:var(--text);font-weight:600}
+.ti .pk{font-size:10px;letter-spacing:.1em;border:1px solid var(--line2);border-radius:4px;padding:1px 5px;margin-right:6px;color:var(--dim)}
+
+/* sections */
+section.sec{max-width:1840px;margin:0 auto;padding:46px 40px 10px}
+.sh{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.sh .n{font-family:var(--mono);color:var(--gold);font-size:14px;letter-spacing:.1em}
+.sh h2{font-family:var(--disp);font-size:clamp(26px,2.4vw,42px);font-weight:700;letter-spacing:-.01em}
+.sh p{color:var(--muted);font-size:15px;flex-basis:100%;max-width:1150px;line-height:1.5}
+.sh p b{color:var(--text);font-weight:600}
+.panel{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0}
+.ptitle{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ptitle .tag{color:var(--gold)}
+.note{font-size:12.5px;color:var(--dim);line-height:1.5;margin-top:10px}
+.note b{color:var(--muted)}
+
+/* verdict pills */
+.v{display:inline-block;font-family:var(--mono);font-weight:800;font-size:11px;letter-spacing:.1em;padding:3px 8px;border-radius:6px;border:1.5px solid;white-space:nowrap}
+.v.VERIFIED{color:var(--green);border-color:var(--green);background:rgba(34,240,138,.08)}
+.v.BUSTED{color:var(--red);border-color:var(--red);background:rgba(255,66,98,.08)}
+.v.MIXED{color:var(--gold);border-color:var(--gold);background:rgba(255,197,61,.08)}
+.v.NOTPROVEN{color:var(--blue);border-color:var(--blue);background:rgba(86,184,255,.08)}
+
+/* claims */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:7px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--panel);color:var(--muted);cursor:pointer;user-select:none;transition:.15s}
+.chip:hover{border-color:var(--dim);color:var(--text)}
+.chip.on{background:var(--text);color:#05070a;border-color:var(--text);font-weight:700}
+.claimsGrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel);cursor:pointer;transition:.15s;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:start}
+.card:hover{border-color:var(--line2);transform:translateY(-1px)}
+.card.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 22px rgba(255,197,61,.18)}
+.card .ts{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.06em}
+.card .cl{grid-column:1/3;font-size:14px;line-height:1.3;color:#d7deea;font-weight:500}
+.card .pf{grid-column:1/3;font-family:var(--mono);font-weight:800;font-size:20px;margin-top:2px}
+.card .pf small{font-family:var(--body);font-weight:400;font-size:12px;color:var(--dim);margin-left:6px}
+.spot{position:sticky;top:76px;border:1px solid var(--line2);border-radius:16px;padding:20px 22px;background:linear-gradient(180deg,#0c121c,#070a10)}
+.spot .sq{font-family:var(--disp);font-size:22px;line-height:1.25;margin:10px 0 6px}
+.spot .quote{font-size:14px;color:var(--muted);font-style:italic;line-height:1.45;border-left:3px solid var(--gold);padding-left:10px;margin:8px 0 14px}
+.spot .bignum{font-family:var(--mono);font-weight:800;font-size:clamp(40px,3.6vw,68px);line-height:1}
+.spot .bl{color:#c9d3e2;font-size:14px;margin:8px 0 12px;line-height:1.4}
+.spot .smk{font-size:13px;line-height:1.5;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.spot .smk b{font-family:var(--mono);color:var(--text);font-size:11px;letter-spacing:.1em;margin-right:6px}
+.tally{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.tally div{font-family:var(--mono);font-weight:800;font-size:28px;border:1px solid var(--line);border-radius:12px;padding:8px 14px;background:var(--panel)}
+.tally span{display:block;font-size:10px;letter-spacing:.12em;font-weight:600;color:var(--dim)}
+
+/* funnel */
+.process{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px}
+.funnel{display:grid;gap:8px}
+.fstep{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center}
+.fstep .fn{font-family:var(--mono);font-weight:800;color:var(--dim);font-size:13px;text-align:center;border:1px solid var(--line2);border-radius:8px;padding:4px 0}
+.fbarw{position:relative;height:56px}
+.fbar{position:absolute;left:0;top:0;bottom:0;border-radius:10px;width:0;transition:width 1.2s cubic-bezier(.2,.9,.2,1)}
+.fcont{position:absolute;inset:0;display:flex;align-items:center;padding:0 14px;gap:12px;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.fcont.zero{background:transparent!important;border:0}
+.fcont .fc{font-family:var(--mono);font-weight:800;font-size:30px}
+.fcont .fl{font-size:13px;font-weight:600;color:var(--text);line-height:1.2}
+.fcont .fl small{color:var(--muted)}
+.fcont .fl small{display:block;font-weight:500;font-size:11.5px}
+.fside{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:-2px 0 2px 46px}
+.fbar.zero{background:rgba(255,66,98,.06)!important;border:2px dashed var(--red)}
+.fcont.zero .fc{text-shadow:0 0 20px rgba(255,66,98,.6)}
+.fcont.zero .fl{color:#ffc2cc}
+
+/* html bars */
+.bars{display:flex;gap:8px;height:200px;align-items:stretch}
+.bcol{flex:1;display:flex;flex-direction:column;min-width:0}
+.bplot{flex:1;position:relative}
+.bplot .zl{position:absolute;left:-4px;right:-4px;height:1px;background:var(--line2)}
+.bplot .bar{position:absolute;left:12%;right:12%;border-radius:4px;transition:top .9s cubic-bezier(.2,.9,.2,1),height .9s cubic-bezier(.2,.9,.2,1)}
+.bar.pos{background:linear-gradient(180deg,var(--green),var(--green2))}
+.bar.neg{background:linear-gradient(0deg,var(--red),var(--red2))}
+.bar.neu{background:linear-gradient(180deg,var(--blue),#1d4f78)}
+.bar.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
+.bar.vio{background:linear-gradient(180deg,var(--violet),#4b3a7a)}
+.bar.hi{box-shadow:0 0 0 2px var(--gold),0 0 18px rgba(255,197,61,.5)}
+.bval{position:absolute;left:0;right:0;text-align:center;font-family:var(--mono);font-size:12px;font-weight:600;transition:top .9s cubic-bezier(.2,.9,.2,1);white-space:nowrap}
+.blab{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chartTitle{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.4}
+.chartTitle b{color:var(--text)}
+
+/* labs */
+.lab{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:20px}
+.knob{margin-bottom:14px}
+.knob .kl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.knob .kl i{font-style:normal;color:var(--gold);text-transform:none;letter-spacing:0;font-weight:800;font-size:13px}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{flex:1 1 auto;font-family:var(--mono);font-size:12px;padding:7px 8px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);cursor:pointer;transition:.12s;min-width:44px}
+.seg button:hover{color:var(--text);border-color:var(--dim)}
+.seg button.on{background:var(--gold);border-color:var(--gold);color:#120d00;font-weight:800}
+.presets{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.pbtn{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.06em;padding:10px 14px;border-radius:10px;border:1.5px solid var(--gold);color:var(--gold);background:transparent;cursor:pointer}
+.pbtn:hover,.pbtn.on{background:var(--gold);color:#120d00}
+.pbtn.alt{border-color:var(--red);color:var(--red)}.pbtn.alt:hover,.pbtn.alt.on{background:var(--red);color:#1c0208}
+.res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.rcol{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--panel2);position:relative;min-width:0}
+.rcol h4{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:4px}
+.rcol .rbig{font-family:var(--mono);font-weight:800;font-size:clamp(30px,2.6vw,50px);line-height:1.05}
+.rcol .rs{font-size:12px;color:var(--dim);margin-top:4px;line-height:1.35}
+canvas.sc{display:block;width:100%;height:300px}
+canvas.eq{display:block;width:100%;height:260px}
+canvas.rp{display:block;width:100%;height:360px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:20px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:20px}
+.rlog{font-family:var(--mono);font-size:12px;min-height:60px;margin-top:8px;color:var(--muted);line-height:1.6}
+.rlog div{animation:fadein .4s}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}}
+input[type=range]{width:100%;accent-color:var(--gold);height:28px}
+.ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:-2px}
+
+/* markets heat chips */
+.mkts{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+.mk{font-family:var(--mono);font-size:12px;border-radius:9px;padding:8px 6px;text-align:center;cursor:pointer;border:1.5px solid transparent;transition:.12s;line-height:1.25}
+.mk b{display:block;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk.on{border-color:var(--gold);box-shadow:0 0 14px rgba(255,197,61,.35)}
+.mkDetail{margin-top:12px;font-size:14px;color:#c9d3e2;line-height:1.5;min-height:66px}
+.mkDetail b{font-family:var(--mono)}
+
+/* cost */
+.costWrap{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:20px}
+.costBig{font-family:var(--mono);font-weight:800;font-size:clamp(34px,3vw,56px);line-height:1}
+.costRead{display:grid;gap:7px;margin-top:12px}
+.cr{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--panel2)}
+.cr i{width:12px;height:12px;border-radius:3px}
+.cr .nm{font-size:13px;color:#c9d3e2}
+.cr .val{font-family:var(--mono);font-weight:800;font-size:19px}
+.cr.dead{opacity:.6}
+.survGrid{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:6px;margin-top:6px;height:250px;padding-bottom:34px}
+.sv{position:relative;height:100%}
+.sv .sz{position:absolute;left:-3px;right:-3px;height:1px;background:var(--line2)}
+.sv .sb{position:absolute;left:8%;right:8%;border-radius:3px;transition:top .6s cubic-bezier(.2,.9,.2,1),height .6s cubic-bezier(.2,.9,.2,1),background .3s}
+.sv .sval{position:absolute;left:-6px;right:-6px;text-align:center;font-family:var(--mono);font-size:10.5px;font-weight:600;transition:top .6s cubic-bezier(.2,.9,.2,1)}
+.sv .sl{position:absolute;top:100%;left:0;right:0;margin-top:6px;font-family:var(--mono);font-size:9.5px;color:var(--dim);text-align:center;line-height:1.15;word-break:break-word}
+
+/* fees + capacity */
+.feeBig{font-family:var(--mono);font-weight:800;font-size:clamp(44px,4vw,80px);line-height:1}
+.stops{display:flex;gap:6px;margin:10px 0 14px}
+.stops button{flex:1;font-family:var(--mono);font-weight:800;font-size:14px;padding:12px 6px;border-radius:10px;border:1.5px solid var(--line2);background:var(--panel2);color:var(--muted);cursor:pointer}
+.stops button.on{border-color:var(--gold);background:var(--gold);color:#120d00}
+.hbar{display:grid;grid-template-columns:minmax(120px,210px) 1fr 76px;gap:12px;align-items:center;margin-bottom:10px}
+.hbar .hl{font-size:13px;color:#c9d3e2;line-height:1.25}
+.hbar .hl small{display:block;color:var(--dim);font-size:11px}
+.hbar .ht{position:relative;height:26px;background:rgba(255,255,255,.02);border-radius:6px}
+.hbar .hf{position:absolute;top:0;bottom:0;border-radius:6px;transition:left .8s cubic-bezier(.2,.9,.2,1),width .8s cubic-bezier(.2,.9,.2,1),background .4s}
+.hbar .hz{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--line2)}
+.hbar .hv{font-family:var(--mono);font-weight:800;font-size:18px;text-align:right}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}
+.kv div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2);font-family:var(--mono);font-weight:800;font-size:22px;min-width:0}
+.kv span{display:block;font-size:10px;letter-spacing:.1em;color:var(--dim);font-weight:400;margin-bottom:4px}
+.capTrack{position:relative;height:62px;margin:18px 6px 10px}
+.capTrack .ln{position:absolute;left:0;right:0;top:28px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--gold) 60%,var(--red))}
+.capTrack .mkr{position:absolute;top:0;font-family:var(--mono);font-size:11px;white-space:nowrap;font-weight:600}
+
+/* bot */
+.botGrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px}
+.code{background:#05080d;border:1px solid var(--line2);border-radius:14px;overflow:hidden}
+.code .cbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--muted)}
+.code .cbar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.code pre{font-variant-ligatures:none;font-feature-settings:"calt" 0,"liga" 0;font-family:var(--mono);font-size:13.5px;line-height:1.6;padding:14px 16px;height:640px;overflow:auto;white-space:pre;color:#cfd8e6;tab-size:4}
+.code pre .k{color:#ff7ab2}.code pre .s{color:#9cf08f}.code pre .c{color:#5f6e84;font-style:italic}.code pre .n{color:var(--gold)}.code pre .f{color:var(--blue)}
+.cursor{display:inline-block;width:8px;height:16px;background:var(--green);vertical-align:-3px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.dnr{border:2px solid var(--red);border-radius:12px;padding:12px 14px;color:var(--red);font-family:var(--mono);font-weight:800;letter-spacing:.08em;background:rgba(255,66,98,.07);display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.dnr span{font-family:var(--body);font-weight:500;letter-spacing:0;color:#ffc2cc;font-size:13px}
+.steps{list-style:none;counter-reset:s;display:grid;gap:8px;margin-top:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;font-size:14px;color:#c9d3e2;line-height:1.4}
+.steps li:before{content:counter(s);font-family:var(--mono);font-weight:800;color:var(--gold);border:1px solid var(--gold2);border-radius:7px;text-align:center;height:24px;line-height:22px}
+
+/* takeaways */
+.tk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.tkc{border:1px solid var(--line);border-radius:14px;padding:16px;background:linear-gradient(180deg,#0d1420,#070a10);position:relative;overflow:hidden}
+.tkc .tn{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--gold);margin-bottom:8px}
+.tkc h4{font-family:var(--disp);font-size:18px;line-height:1.2;margin-bottom:8px}
+.tkc p{font-size:13.5px;color:var(--muted);line-height:1.45}
+.tkc p b{color:var(--text);font-family:var(--mono)}
+footer{max-width:1840px;margin:40px auto 0;padding:24px 40px 50px;border-top:1px solid var(--line);color:var(--dim);font-size:13px;line-height:1.7}
+footer b{color:var(--muted)}
+
+@media (max-width:1200px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .claimsGrid,.lab,.botGrid,.costWrap,.process{grid-template-columns:1fr}
+  .spot{position:static}
+  .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tk{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:700px){
+  section.sec{padding-left:16px;padding-right:16px;padding-top:34px}
+  .top{padding:10px 16px;gap:12px;justify-content:space-between}.vid{display:none}.live{font-size:0}.live i{margin-right:0}.brand{font-size:13px}
+  .hero{padding:18px 16px 14px;gap:18px}
+  .bigrow{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}.big{font-size:54px}.big small{font-size:9.5px;letter-spacing:.08em;line-height:1.35}.vs{display:none}.stamp{grid-column:1/3;justify-self:center;margin:4px 0 0;font-size:18px}
+  .tog button{white-space:normal;font-size:10px;padding:6px 8px}.raceHead .t{font-size:11px}
+  .cards,.grid2,.grid3,.tk{grid-template-columns:1fr}
+  .res{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rcol{padding:10px}.rcol .rbig{font-size:24px}.rcol .rs{font-size:11px}
+  .rrow{grid-template-columns:118px 1fr 50px;gap:8px}.rname span{display:none}.rname{font-size:12px}.rname b{white-space:normal;line-height:1.15}.rval{font-size:15px}
+  .raceBody{height:calc(6 * 40px)}
+  .proofs li{grid-template-columns:1fr;gap:2px}
+  .answer{padding:18px 16px}
+  .kv{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hbar{grid-template-columns:1fr 64px;gap:4px 8px}.hbar .hl{grid-column:1/3}.hbar .hv{font-size:15px}
+  .code pre{font-size:12px;height:460px}
+  .fcont .fc{font-size:22px}.fcont .fl{font-size:11.5px;white-space:normal}.fcont .fl small{display:none}.fbarw{height:48px}
+  .survGrid{gap:3px;height:170px;padding-bottom:10px}.sv .sl{display:none}.sv .sval{display:none}
+  canvas.rp{height:280px}canvas.sc{height:260px}
+  footer{padding:20px 16px 40px}
+  .stops button{font-size:12px;padding:10px 4px}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand"><span class="moon"></span>MOON DEV <b>EDGE FINDER</b></div>
+  <div class="vid">Testing <b>"The mathematician who cracked Wall Street | Jim Simons"</b> by TED. Real data, real backtests.</div>
+  <div class="live"><i></i>REAL DATA REPLAY</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="kicker">We built a Jim Simons style machine. 19 features. Monthly retrains.</div>
+    <h1 class="hq">Jim's <em>one-line 20 day rule</em> beat the machine.</h1>
+    <div class="hsub" id="heroSub"></div>
+    <div class="bigrow">
+      <div class="big up"><span id="hJim">0.00</span><small>JIM'S 20 DAY TREND · SHARPE</small></div>
+      <div class="vs">vs</div>
+      <div class="big down"><span id="hMac">0.00</span><small>THE ML MACHINE · SHARPE</small></div>
+      <div class="stamp">1 LINE WINS<small>FINAL HOLDOUT</small></div>
+    </div>
+    <div class="race" id="race">
+      <div class="raceHead">
+        <div class="t" id="raceT"></div>
+        <div class="tog" id="raceTog"><button data-m="pre">BEFORE HOLDOUT (USED TO PICK)</button><button data-m="hold">FINAL HOLDOUT</button></div>
+      </div>
+      <div class="raceBody" id="raceBody"></div>
+      <div class="raceFoot" id="raceFoot"></div>
+    </div>
+  </div>
+  <div class="answer">
+    <div class="q">Can you copy Renaissance from home?</div>
+    <div class="a">Not with taker fees.</div>
+    <ul class="proofs" id="proofs"></ul>
+    <div class="credit">Video: <b>"The mathematician who cracked Wall Street | Jim Simons"</b>, <b>TED</b> (<a href="https://www.youtube.com/watch?v=U5kIdtMJGc8" target="_blank" rel="noopener">watch it</a>). Jim gives no return numbers in this talk. Every number here is Moon Dev's own backtest on real data.</div>
+  </div>
+</div>
+
+<div class="tape"><div class="tapeIn" id="tape"></div></div>
+
+<!-- CLAIMS -->
+<section class="sec" id="claims">
+  <div class="sh"><span class="n">01</span><h2>Claim vs reality scoreboard</h2>
+    <p>Every claim Jim makes about how Renaissance won, tested on real data. Click a card. Time stamps are minutes into the talk (the transcript marks 10 minute blocks, so they are close, not exact).</p></div>
+  <div class="tally" id="tally"></div>
+  <div class="chips" id="cchips"></div>
+  <div class="claimsGrid">
+    <div class="cards" id="cards"></div>
+    <div class="spot" id="spot"></div>
+  </div>
+</section>
+
+<!-- JIM'S PROCESS -->
+<section class="sec" id="process">
+  <div class="sh"><span class="n">02</span><h2>Jim's process: hunt anomalies, prove they're not random</h2>
+    <p>Jim (about 13 min): <b>"any one anomaly might be a random thing. However, if you have enough data, you can tell that it's not."</b> Moon Dev wrote down 224 short-term tests BEFORE looking at any result, then ran every one through Jim's filter on real Binance 1m bars (11 coins, 2020 to 2026), funding, liquidations and the TSLA tape.</p></div>
+  <div class="process">
+    <div class="panel">
+      <div class="ptitle"><span>The anomaly funnel</span><span class="tag">224 TESTS IN, 0 TRADEABLE OUT</span></div>
+      <div class="funnel" id="funnel"></div>
+      <div class="note" id="funnelNote"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>Every test: in-sample proof vs out-of-sample</span><span class="tag">t-STAT, DAILY P&amp;L</span></div>
+      <canvas class="sc" id="anScatter" style="height:330px"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>survived (not random + held OOS)</span><span><i style="background:var(--blue)"></i>not random, failed OOS</span><span><i style="background:#3a4558"></i>looked random</span></div>
+      <div class="note" id="scNote"></div>
+    </div>
+  </div>
+  <div class="grid3">
+    <div class="panel">
+      <div class="ptitle"><span>"Enough data" works</span><span class="tag">% THAT HELD OOS</span></div>
+      <div class="chartTitle">Share of tests that held out-of-sample, by how strong the in-sample proof was (t-stat).</div>
+      <div id="hitT"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>"Persisted long enough" as a number</span><span class="tag">BEST FILTER</span></div>
+      <div class="chartTitle">Split in-sample into 4 chunks. Needs <b>t &ge; 2 in every chunk</b> vs only pooled.</div>
+      <div id="persist"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>"These things fade"</span><span class="tag">MEDIAN SURVIVOR</span></div>
+      <div class="chartTitle">Survivors' edge each year divided by their in-sample edge (1.0 = no fade).</div>
+      <div id="decay2"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ptitle"><span>Replay: the #1 survivor, CRV 1m "fade the last bar"</span><span class="tag" id="crvTag"></span></div>
+      <canvas class="rp" id="rp2"></canvas>
+      <div class="rlog" id="rp2log"></div>
+      <div class="note" id="crvNote"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>"Spreads are narrower" (about 16 min)</span><span class="tag">VERIFIED</span></div>
+      <div class="chartTitle">Median spread proxy of 11 Binance perps, in <b>bp</b> (Abdi-Ranaldo, from 1m high/low/close).</div>
+      <div id="spreads"></div>
+      <div class="chartTitle" style="margin-top:16px">Median trades per minute, same 11 coins.</div>
+      <div id="tpm"></div>
+      <div class="note" id="spreadNote"></div>
+    </div>
+  </div>
+</section>
+
+<!-- COST -->
+<section class="sec" id="cost">
+  <div class="sh"><span class="n">03</span><h2>Slide the fee. Watch each edge die.</h2>
+    <p>Cost is in <b>bp per side</b> (1 bp = 0.01%). Binance taker is about 7 bp a side here (5 bp fee + 2 bp slippage). Maker is 2 bp a side (and assumes every limit order fills, which is too kind). Every value is a real precomputed run, no guessing between points.</p></div>
+  <div class="costWrap">
+    <div class="panel">
+      <div class="ptitle"><span>The machines, final holdout Sharpe vs cost</span><span class="tag">2025-07-01 TO 2026-10-24</span></div>
+      <canvas class="sc" id="costChart" style="height:340px"></canvas>
+      <div class="knob" style="margin-top:12px"><div class="kl">Cost per side <i id="costLbl"></i></div>
+        <input type="range" id="costR" min="0" max="7" step="1" value="5"><div class="ticks" id="costTicks"></div></div>
+      <div class="chartTitle" style="margin-top:14px">The 13 real anomaly survivors from section 02. Out-of-sample <b>bp per trade</b> after a round trip (2 sides) at this cost:</div>
+      <div class="survGrid" id="survGrid"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>At this cost</span><span class="tag" id="costTag"></span></div>
+      <div class="costBig" id="costBig"></div>
+      <div class="note" style="margin-top:4px" id="costBigL"></div>
+      <div class="costRead" id="costRead"></div>
+      <div id="survCapBox"></div>
+      <div class="ptitle" style="margin-top:18px"><span>Where each edge dies</span><span class="tag">FIRST TESTED COST WITH SHARPE &le; 0</span></div>
+      <div id="dieList" class="costRead" style="margin-top:0"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TREND LAB -->
+<section class="sec" id="trend">
+  <div class="sh"><span class="n">04</span><h2>Jim's 20 day trend lab</h2>
+    <p>Jim (about 10 min): <b>"predict today by the average move in the past 20 days... years ago such a system would work, not beautifully but it would work."</b> Then: try 10 days, 15 days, <b>"see what worked best."</b> The video leaves out the exact rule, the hold time and the bet size, so Moon Dev tested 3 versions. Pick a market, a version and a lookback. Every number is a real run, net of costs.</p></div>
+  <div class="lab">
+    <div class="panel">
+      <div class="presets"><button class="pbtn" id="preJim">JIM'S 20 DAYS</button><button class="pbtn alt" id="preTrap">"WHAT WORKED BEST" (TRAP)</button></div>
+      <div class="knob"><div class="kl">Market</div><div class="seg" id="segG"></div></div>
+      <div class="knob"><div class="kl">Version <i id="varTxt"></i></div><div class="seg" id="segV"></div></div>
+      <div class="knob"><div class="kl">Lookback N (days) <i id="nTxt"></i></div><input type="range" id="nR" min="0" max="10" value="0"><div class="ticks"><span>2</span><span>20</span><span>250</span></div></div>
+      <div class="note" id="labNote"></div>
+    </div>
+    <div class="panel">
+      <div class="res">
+        <div class="rcol"><h4>IN-SAMPLE SHARPE</h4><div class="rbig" id="rIS"></div><div class="rs" id="rISd"></div></div>
+        <div class="rcol"><h4>OUT-OF-SAMPLE SHARPE</h4><div class="rbig" id="rOOS"></div><div class="rs" id="rOOSd"></div></div>
+        <div class="rcol"><h4>JUST HOLD IT (OOS)</h4><div class="rbig" id="rBH"></div><div class="rs">same markets, equal risk</div></div>
+      </div>
+      <div class="chartTitle" id="labChartT"></div>
+      <canvas class="sc" id="labChart" style="height:280px"></canvas>
+      <div class="legend"><span><i style="background:var(--violet)"></i>in-sample Sharpe (net)</span><span><i style="background:var(--green)"></i>out-of-sample Sharpe (net)</span><span><i style="background:var(--gold)"></i>your N</span><span><i style="background:var(--red)"></i>best in-sample N</span></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ptitle"><span>Which market? Jim's exact 20 day rule, out-of-sample</span><span class="tag">CLICK ONE</span></div>
+      <div class="mkts" id="mkts"></div>
+      <div class="mkDetail" id="mkDetail"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>"Great in the 60s, okay in the 70s, gone by the 80s"</span><span class="tag" id="decTag"></span></div>
+      <div class="chartTitle" id="dec1T"></div>
+      <div id="decay1"></div>
+      <div class="note" id="dec1N"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ptitle"><span>Replay: BTC perp, 20 day sign, every trade</span><span class="tag">REAL BARS</span></div>
+      <canvas class="rp" id="rp1"></canvas>
+      <div class="rlog" id="rp1log"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>All markets, 20 day rule, 10% risk each</span><span class="tag">"NOT BEAUTIFULLY"</span></div>
+      <canvas class="eq" id="eq1"></canvas>
+      <div class="kv" id="kv1"></div>
+      <div class="chartTitle" style="margin-top:14px">Same 20 days of lookback, faster bars. Crypto perps, OOS Sharpe, <b>before vs after 7 bp/side</b>:</div>
+      <div id="tfBars"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MACHINE -->
+<section class="sec" id="machine">
+  <div class="sh"><span class="n">05</span><h2>The Simons machine</h2>
+    <p>Jim (about 12 min): <b>"what we did was machine learning. You look at a lot of data and you try to simulate different predictive schemes until you get better and better at it."</b> Moon Dev's version: 16 Binance perps, 4h bars, up to 25 weak features (price, volume, taker flow, funding), walk-forward retrain every month, long the top third and short the bottom third, sized to 10% vol a year.</p></div>
+  <div class="grid2" style="margin-top:0">
+    <div class="panel">
+      <div class="ptitle"><span>The picked machine, walk-forward, after taker</span><span class="tag">RED = FINAL HOLDOUT</span></div>
+      <canvas class="eq" id="eq3"></canvas>
+      <div class="kv" id="kv3"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>"Everything is grist for the mill": add data types</span><span class="tag">ZERO COST SHARPE</span></div>
+      <div class="tog" id="dtTog" style="display:inline-flex;margin-bottom:10px"><button data-m="0">BEFORE HOLDOUT</button><button data-m="1">FINAL HOLDOUT</button></div>
+      <div id="dtBars"></div>
+      <div class="note" id="dtNote"></div>
+    </div>
+  </div>
+  <div class="grid3">
+    <div class="panel">
+      <div class="ptitle"><span>What the machine leaned on</span><span class="tag">LIGHTGBM GAIN %</span></div>
+      <div id="fiBars"></div>
+      <div class="note" id="fiNote"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>"Keep on top of the business"</span><span class="tag">BUSTED</span></div>
+      <div class="chartTitle">2023-01 to 2026-10, Sharpe after taker. Retrain monthly vs quarterly vs train ONCE on 2020 to 2022.</div>
+      <div id="rtBars"></div>
+      <div class="note">Training once did as well as retraining. The signals that worked (trend, low vol, taker flow) were steady.</div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>Fading in real time?</span><span class="tag">SHARPE AFTER TAKER, BY YEAR</span></div>
+      <div id="dec3"></div>
+      <div class="note" id="dec3N"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ptitle"><span>Replay: the machine trading SOL</span><span class="tag">4H BARS · WEIGHT % OF CAPITAL</span></div>
+      <canvas class="rp" id="rp3"></canvas>
+      <div class="rlog" id="rp3log"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>Speed vs cost: LightGBM's real fast edge</span><span class="tag">HOLDOUT</span></div>
+      <div class="chartTitle">LightGBM trading every 4h bar with no turnover control. Holdout Sharpe at each cost (<b>bp per side</b>):</div>
+      <div id="gbmRaw"></div>
+      <div class="note" id="gbmNote"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEES + CAPACITY -->
+<section class="sec" id="fees">
+  <div class="sh"><span class="n">06</span><h2>5 and 44, and why Jim kicked out his investors</h2>
+    <p>Jim (about 15 min): normal hedge funds charge 2 and 20. Renaissance charged <b>"5 and 44"</b> (5% a year flat, 44% of gains). And they bought out the outside investors <b>"because there's a capacity to the fund."</b> Here is what those fees and that capacity limit do to the edges Moon Dev actually found.</p></div>
+  <div class="grid2" style="margin-top:0">
+    <div class="panel">
+      <div class="ptitle"><span>Fee slider</span><span class="tag">RETURN A YEAR (CAGR) TO INVESTORS</span></div>
+      <div class="stops" id="feeStops"><button data-f="0">NO FEES</button><button data-f="1">2 AND 20</button><button data-f="2">5 AND 44</button></div>
+      <div id="feeBars"></div>
+      <div class="note" id="feeNote"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle"><span>Capacity: how big can the machine get?</span><span class="tag">SQUARE ROOT IMPACT</span></div>
+      <div class="stops" id="capStops"></div>
+      <div class="kv" id="capKv"></div>
+      <div class="capTrack" id="capTrack"><div class="ln"></div></div>
+      <div class="note" id="capNote"></div>
+    </div>
+  </div>
+</section>
+
+<!-- BOT -->
+<section class="sec" id="bot">
+  <div class="sh"><span class="n">07</span><h2>The bot: Moon Dev's Simons machine</h2>
+    <p>Small, clean, and honest. It pulls Binance public 1h bars (no keys), builds the same features, scores 16 coins, and prints the long and short book. It does not send orders.</p></div>
+  <div class="botGrid">
+    <div class="code"><div class="cbar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>&nbsp; alpha/3_simons_machine/bot_simons_machine.py</div><pre id="code"></pre></div>
+    <div>
+      <div class="dnr">DRY RUN. DO NOT RUN LIVE.<span>Its real backtest lost to a one-line rule on the final holdout. It is an example to learn from.</span></div>
+      <div class="panel">
+        <div class="ptitle"><span>What it trades</span><span class="tag">BINANCE USDT PERPS</span></div>
+        <div class="kv" id="botKv"></div>
+        <ol class="steps" id="botSteps"></ol>
+        <div class="note" id="botNote"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAKEAWAYS -->
+<section class="sec" id="take">
+  <div class="sh"><span class="n">08</span><h2>Use these today</h2></div>
+  <div class="tk" id="tk"></div>
+</section>
+
+<footer>
+  <div><b>Moon Dev Edge Finder.</b> Video: "The mathematician who cracked Wall Street | Jim Simons" by <b>TED</b>, https://www.youtube.com/watch?v=U5kIdtMJGc8. All credit for the talk goes to TED and Jim Simons.</div>
+  <div id="leaves"></div>
+  <div>Data: Binance USDT perp 1m bars 2020-01 to 2026-10, Binance spot, Binance funding, clean liquidations, Nasdaq TSLA prints, Yahoo daily futures, FX, SPY. We do not have weather, annual reports, or 1960s to 1980s data, so those are not tested. Code and every result.json: <b>alpha/</b> in this repo.</div>
+</footer>
+
+<script>
+// Moon Dev: every number below comes from alpha/*/result.json, baked in by build_dashboard.py
+const D=/*__DATA__*/null;
+</script>
+<script>
+// ===================== Moon Dev helpers =====================
+const $=s=>document.querySelector(s);
+const C={green:'#22f08a',red:'#ff4262',gold:'#ffc53d',blue:'#56b8ff',violet:'#b394ff',muted:'#8d9ab0',dim:'#5a6679',line:'#18212e',line2:'#243041',text:'#eef3fa'};
+function fm(v,d=2,sign=false){if(v==null||isNaN(v))return 'n/a';if(Math.abs(v)<0.5*Math.pow(10,-d))v=0;const s=Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});return (v<0?'-':(sign&&v>0?'+':''))+s}
+const col=v=>v>0?'g':v<0?'r':'m';
+const T=s=>Date.parse(s.length===10?s+'T00:00:00Z':(s.length===19?s+'Z':s));
+const ymd=ms=>new Date(ms).toISOString().slice(0,10);
+const isPhone=()=>window.innerWidth<700;
+
+const anims=new Set();
+const io=new IntersectionObserver(es=>es.forEach(e=>{const a=e.target._anim;if(!a)return;a.visible=e.isIntersecting;if(e.isIntersecting&&a.onShow)a.onShow()}),{threshold:0.02});
+function register(el,a){el._anim=a;a.visible=false;anims.add(a);io.observe(el);return a}
+function frame(t){anims.forEach(a=>{if(a.visible)a.tick(t)});requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+function fit(c){const dpr=Math.min(2,window.devicePixelRatio||1);const w=c.clientWidth,h=c.clientHeight;if(c._w!==w||c._h!==h||c._d!==dpr){c._w=w;c._h=h;c._d=dpr;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);return{x,w,h}}
+
+function countUp(el,to,{d=0,pre='',suf='',sign=false,dur=1600}={}){
+  const st=performance.now();
+  function f(n){const p=Math.min(1,(n-st)/dur);const e=1-Math.pow(1-p,3);el.textContent=pre+fm(to*e,d,sign)+suf;if(p<1)requestAnimationFrame(f)}
+  requestAnimationFrame(f);
+}
+function counterOnShow(el,to,opt){const a={tick(){},onShow(){if(a.done)return;a.done=true;countUp(el,to,opt)}};register(el,a)}
+
+// HTML bar chart (animated), redraw-safe
+function bars(el,{labels,values,unit='',hi=-1,base=null,d=2,cls=null,h=null,fmtv=null,ref=null}){
+  const r0=ref!=null?ref:0;
+  let lo=Math.min(r0,...values),hiV=Math.max(r0,...values);const span=(hiV-lo)||1;lo-=span*.16;hiV+=span*.16;
+  if(base!=null)lo=base;
+  const y=v=>(hiV-v)/(hiV-lo)*100;const z=y(r0);
+  const f=fmtv||(v=>(unit==='%'?fm(v,d):fm(v,d,true))+(unit==='%'?'%':unit==='bp'?' bp':unit));
+  el.innerHTML='<div class="bars"'+(h?` style="height:${h}px"`:'')+'>'+values.map((v,i)=>{
+    const c=cls?cls[i]:(v>=r0?'pos':'neg');
+    const top=Math.min(y(v),z),ht=Math.abs(y(v)-z);
+    const vt=v>=r0?Math.max(0,top-9):Math.min(92,top+ht+1);
+    return `<div class="bcol"><div class="bplot"><div class="zl" style="top:${z}%"></div><div class="bar ${c}${i===hi?' hi':''}" data-t="${top}" data-h="${ht}" style="top:${z}%;height:0"></div><div class="bval ${v>=r0?'g':'r'}" data-t="${vt}" style="top:${z}%">${f(v)}</div></div><div class="blab" title="${labels[i]}">${labels[i]}</div></div>`}).join('')+'</div>';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.querySelectorAll('.bar').forEach(b=>{b.style.top=b.dataset.t+'%';b.style.height=b.dataset.h+'%'});el.querySelectorAll('.bval').forEach(b=>{b.style.top=b.dataset.t+'%'})}));
+}
+function barsOnShow(el,opt){const a={tick(){},onShow(){if(a.done)return;a.done=true;bars(el,opt)}};register(el,a)}
+
+// line chart that draws itself (loops)
+function lineAnim(cv,getS,opt={}){
+  const a={t0:null,tick(now){if(a.t0==null)a.t0=now;const dur=opt.dur||5000,hold=opt.hold||3500;let el=now-a.t0;if(el>dur+hold){a.t0=now;el=0}draw(Math.min(1,el/dur))}};
+  function draw(p){
+    const {x,w,h}=fit(cv);x.clearRect(0,0,w,h);
+    const S=getS();const L=opt.padL||52,Rr=opt.padR||16,Tt=opt.padT||28,B=opt.padB||24;
+    let xs=[],ys=[];S.forEach(s=>s.pts.forEach(p=>{xs.push(p[0]);ys.push(p[1])}));
+    if(opt.y0!=null)ys.push(opt.y0);
+    const x0=Math.min(...xs),x1=Math.max(...xs);let y0=Math.min(...ys),y1=Math.max(...ys);const pad=(y1-y0)*.08||1;y0-=pad;y1+=pad;
+    const X=v=>L+(v-x0)/(x1-x0)*(w-L-Rr),Y=v=>Tt+(y1-v)/(y1-y0)*(h-Tt-B);
+    x.font='11px JetBrains Mono, monospace';x.textBaseline='middle';
+    for(let i=0;i<=4;i++){const v=y0+(y1-y0)*i/4,yy=Y(v);x.strokeStyle=C.line;x.lineWidth=1;x.beginPath();x.moveTo(L,yy);x.lineTo(w-Rr,yy);x.stroke();x.fillStyle=C.dim;x.textAlign='right';x.fillText(opt.yfmt?opt.yfmt(v):fm(v,2),L-8,yy)}
+    if(opt.y0!=null){const yy=Y(opt.y0);x.strokeStyle=C.line2;x.setLineDash([4,4]);x.beginPath();x.moveTo(L,yy);x.lineTo(w-Rr,yy);x.stroke();x.setLineDash([])}
+    x.textAlign='center';x.fillStyle=C.dim;
+    const ya=new Date(x0).getUTCFullYear(),yb=new Date(x1).getUTCFullYear();const step=Math.max(1,Math.ceil((yb-ya)/(w<600?5:10)));
+    for(let yr=ya+1;yr<=yb;yr+=step){const t=Date.UTC(yr,0,1);if(t>x0&&t<x1)x.fillText(String(yr),X(t),h-9)}
+    if(opt.split){const sx=X(opt.split);x.fillStyle='rgba(255,66,98,.07)';x.fillRect(sx,Tt-14,w-Rr-sx,h-Tt-B+14);x.strokeStyle=C.red;x.setLineDash([5,5]);x.beginPath();x.moveTo(sx,Tt-14);x.lineTo(sx,h-B);x.stroke();x.setLineDash([]);x.fillStyle=C.red;x.textAlign='left';x.font='600 11px JetBrains Mono, monospace';x.fillText(w<560?'OOS':(opt.splitLabel||'OUT OF SAMPLE'),sx+8,Tt-6);x.fillStyle=C.green;x.textAlign='right';x.fillText(w<560?'IS':(opt.isLabel||'IN-SAMPLE'),sx-8,Tt-6)}
+    const cut=x0+(x1-x0)*p;
+    S.forEach(s=>{
+      const pts=s.pts.filter(q=>q[0]<=cut);if(pts.length<2)return;
+      if(s.fill){const g=x.createLinearGradient(0,Tt,0,h-B);g.addColorStop(0,s.fill);g.addColorStop(1,'rgba(0,0,0,0)');x.beginPath();x.moveTo(X(pts[0][0]),h-B);pts.forEach(q=>x.lineTo(X(q[0]),Y(q[1])));x.lineTo(X(pts[pts.length-1][0]),h-B);x.closePath();x.fillStyle=g;x.fill()}
+      x.lineWidth=s.width||2;x.lineJoin='round';
+      const seg=(arr,c)=>{x.strokeStyle=c;x.beginPath();arr.forEach((q,i)=>i?x.lineTo(X(q[0]),Y(q[1])):x.moveTo(X(q[0]),Y(q[1])));x.stroke()};
+      if(opt.split&&s.splitColor){const a1=pts.filter(q=>q[0]<=opt.split);const i0=Math.max(0,a1.length-1);seg(a1,s.color);if(pts.length>a1.length)seg(pts.slice(i0),s.splitColor)}else seg(pts,s.color);
+      const q=pts[pts.length-1];const hc=(opt.split&&q[0]>opt.split&&s.splitColor)||s.color;x.fillStyle=hc;x.shadowColor=hc;x.shadowBlur=16;x.beginPath();x.arc(X(q[0]),Y(q[1]),4.5,0,7);x.fill();x.shadowBlur=0;
+      if(s.label){x.font='800 13px JetBrains Mono, monospace';x.textAlign=X(q[0])>w-150?'right':'left';x.fillText(s.label(q),X(q[0])+(x.textAlign==='right'?-10:10),Y(q[1])-14)}
+    });
+    opt.after&&opt.after(x,X,Y,p,w,h);
+  }
+  return register(cv,a);
+}
+
+// candle replay with trades firing (generic)
+function replay(cv,logEl,bars,events,opt={}){
+  const n=bars.length;
+  let lo=Infinity,hi=-Infinity;bars.forEach(b=>{lo=Math.min(lo,b.l);hi=Math.max(hi,b.h)});const pd=(hi-lo)*.06;lo-=pd;hi+=pd;
+  const dur=opt.dur||16000,hold=3000;let shown=new Set();
+  const a={t0:null,tick(now){if(a.t0==null){a.t0=now;shown.clear();logEl.innerHTML=''}let el=now-a.t0;if(el>dur+hold){a.t0=now;el=0;shown.clear();logEl.innerHTML=''}draw(Math.min(1,el/dur),now)}};
+  function addLog(html){const d=document.createElement('div');d.innerHTML=html;logEl.prepend(d);while(logEl.children.length>3)logEl.lastChild.remove()}
+  function draw(p,now){
+    const {x,w,h}=fit(cv);x.clearRect(0,0,w,h);
+    const L=8,Rr=opt.padR||64,Tt=22,B=opt.band?62:22;const k=Math.max(1,Math.floor(p*n));
+    const bw=(w-L-Rr)/n;const X=i=>L+bw*(i+.5),Y=v=>Tt+(hi-v)/(hi-lo)*(h-Tt-B);
+    x.font='11px JetBrains Mono, monospace';x.textBaseline='middle';
+    for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;x.strokeStyle=C.line;x.lineWidth=1;x.beginPath();x.moveTo(L,Y(v));x.lineTo(w-Rr,Y(v));x.stroke();x.fillStyle=C.dim;x.textAlign='left';x.fillText(opt.pfmt(v),w-Rr+6,Y(v))}
+    // signal band under candles
+    if(opt.band){const by=h-B+18,bh=30;x.fillStyle='rgba(255,255,255,.02)';x.fillRect(L,by,w-L-Rr,bh);const mx=opt.bandMax;
+      for(let i=0;i<k;i++){const s=bars[i].s;if(!s)continue;const hh=Math.min(1,Math.abs(s)/mx)*bh/2;x.fillStyle=s>0?'rgba(34,240,138,.75)':'rgba(255,66,98,.75)';x.fillRect(X(i)-bw/2,by+bh/2-(s>0?hh:0),Math.max(1,bw*.9),hh)}
+      x.fillStyle=C.dim;x.textAlign='left';x.font='10px JetBrains Mono, monospace';x.fillText(opt.bandLabel,L+2,by-8)}
+    for(let i=0;i<k;i++){const b=bars[i];const up=b.c>=b.o;x.strokeStyle=up?'#1fa866':'#b8344b';x.fillStyle=up?'#1fa866':'#b8344b';x.lineWidth=1;x.beginPath();x.moveTo(X(i),Y(b.h));x.lineTo(X(i),Y(b.l));x.stroke();const yo=Y(Math.max(b.o,b.c)),yc=Y(Math.min(b.o,b.c));x.fillRect(X(i)-Math.max(.6,bw*.32),yo,Math.max(1.2,bw*.64),Math.max(1,yc-yo))}
+    events.forEach((e,j)=>{if(k-1<e.i)return;const up=e.dir>0;const ex=X(e.i),ey=Y(e.price);
+      x.fillStyle=e.color||(up?C.green:C.red);x.beginPath();const oy=up?ey+12:ey-12;x.moveTo(ex,up?oy-8:oy+8);x.lineTo(ex-6,up?oy+3:oy-3);x.lineTo(ex+6,up?oy+3:oy-3);x.closePath();x.fill();
+      if(e.i1!=null&&k-1>=e.i1&&e.exit!=null){x.strokeStyle=e.pnl>0?C.green:C.red;x.lineWidth=1.6;x.setLineDash([5,4]);x.beginPath();x.moveTo(ex,ey);x.lineTo(X(e.i1),Y(e.exit));x.stroke();x.setLineDash([])}
+      if(!shown.has(j)){shown.add(j);e._f=now;addLog(e.log)}
+      if(e._f&&now-e._f<900){const q=(now-e._f)/900;x.strokeStyle=`rgba(255,197,61,${1-q})`;x.lineWidth=2;x.beginPath();x.arc(ex,ey,5+q*30,0,7);x.stroke()}
+    });
+    x.fillStyle=C.muted;x.textAlign='left';x.font='600 11px JetBrains Mono, monospace';x.fillText(bars[k-1].lab,L+2,8);
+  }
+  return register(cv,a);
+}
+function idxOf(bars,t){let k=0;for(let i=0;i<bars.length;i++){if(bars[i].t<=t)k=i;else break}return k}
+
+const p1=D.p1,p2=D.p2,p3=D.p3;
+const RACE=p3.race,COSTS=p3.costs.map(Number);
+const raceBy=k=>RACE.find(r=>r.key===k);
+const sh=(k,c,i)=>raceBy(k).c[String(c)][i];   // i: 0 = before holdout, 1 = final holdout
+
+// ===================== HERO =====================
+const JIM=sh('trend20',7,1),MAC=sh('blend_pv',7,1);
+$('#heroSub').innerHTML=`Final holdout <b>2025-07-01 to 2026-10-24</b> (never used to pick anything). 16 Binance perps, 4h bars, after <b>7 bp a side</b> taker costs. The machine looked best <i>before</i> the holdout (Sharpe <b>${fm(sh('blend_pv',7,0),2)}</b> vs <b>${fm(sh('trend20',7,0),2)}</b>). Then it met new data.`;
+countUp($('#hJim'),JIM,{d:2,dur:1800});countUp($('#hMac'),MAC,{d:2,dur:1800});
+
+let raceMode='pre',raceAuto=true,raceCost=7;
+function drawRace(){
+  const i=raceMode==='pre'?0:1;const vals=RACE.map(r=>r.c[String(raceCost)][i]);
+  const lo=Math.min(-1.3,...vals),hi=Math.max(1.8,...vals);const X=v=>(v-lo)/(hi-lo)*100;
+  const order=vals.map((v,j)=>[v,j]).sort((a,b)=>b[0]-a[0]).map(q=>q[1]);
+  const body=$('#raceBody');
+  if(!body.children.length){body.innerHTML=RACE.map((r,j)=>`<div class="rrow ${r.key==='blend_pv'?'me':r.key==='trend20'?'jim':''}" data-j="${j}"><div class="rname"><b>${r.name}</b><span>${r.sub}</span></div><div class="rtrack"><div class="z"></div><div class="rbar"></div></div><div class="rval"></div></div>`).join('')}
+  [...body.children].forEach(row=>{const j=+row.dataset.j,v=vals[j];row.style.top=(order.indexOf(j)*40)+'px';
+    const z=X(0),b=row.querySelector('.rbar');b.style.left=Math.min(z,X(v))+'%';b.style.width=Math.abs(X(v)-z)+'%';
+    b.style.background=v>=0?'linear-gradient(90deg,#0f7a47,#22f08a)':'linear-gradient(270deg,#7a1426,#ff4262)';row.querySelector('.z').style.left=z+'%';
+    const rv=row.querySelector('.rval');rv.textContent=fm(v,2,true);rv.className='rval '+col(v)});
+  $('#raceT').innerHTML=`<b>${raceMode==='pre'?'2022-01 TO 2025-06 (walk-forward, used to pick)':'FINAL HOLDOUT 2025-07 TO 2026-10'}</b> · SHARPE AFTER ${raceCost} BP/SIDE`;
+  $('#raceTog').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===raceMode));
+}
+$('#raceFoot').innerHTML=`Why two "blend" numbers? Moon Dev picked <b>the price + volume blend</b> because it had the best Sharpe before the holdout (${fm(sh('blend_pv',7,0),2)} after taker). Its final holdout: <b class="r">${fm(MAC,2)}</b>. The all-features blend (${fm(sh('blend_all',7,1),2)} on the holdout) was NOT picked, and even it lost to Jim's line (<b class="g">${fm(JIM,2)}</b>). The ${fm(p3.full.sharpe,2)} you may see elsewhere is the picked machine over the whole 2022-01 to 2026-10 walk-forward, which includes the years used to pick it.`;
+$('#raceTog').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;raceAuto=false;raceMode=b.dataset.m;drawRace()});
+drawRace();
+(function loop(){setTimeout(()=>{if(raceAuto){raceMode=raceMode==='pre'?'hold':'pre';drawRace()}loop()},raceMode==='hold'?7000:3200)})();
+
+const F=p2.filters;
+const proofs=[
+  {v:F.tests_run,d:0,pre:'',suf:'',post:' → 0',cls:'r',t:'short-term anomalies tested. <b>0</b> still make money after taker fees (14 bp round trip).',s:`${F['held_oos_t>=2 (survived)']} were real and held out-of-sample. All too small to pay a taker.`},
+  {v:p1.sel.crypto_perps.sign_ls.n20_oos_sharpe_net,d:2,cls:'g',t:"Jim's 20 day rule on 16 crypto perps, out-of-sample Sharpe after costs.",s:'2024-01 to 2026-10. Still alive.'},
+  {v:p1.sel.commodities.sign_ls.n20_oos_sharpe_net,d:2,cls:'r',t:'Same rule on oil, gold, silver, gas. Out-of-sample Sharpe.',s:'2013 to 2024-09. Dead, just like Jim said.'},
+  {v:p1.fees.after_5_and_44.cagr_pct,d:1,suf:'%',cls:'y',t:`a year left for investors after <b>5 and 44</b> fees, from ${fm(p1.fees.before_fees.cagr_pct,1)}% before fees.`,s:'Best honest trend version, 2018 to 2026-10.'},
+  {v:p2.persist['naive_and_strict_every_chunk_t>=2'].hit_rate_pct,d:0,suf:'%',cls:'g',t:`of edges that were strong in <b>every</b> slice of their history held up later. Only ${fm(p2.persist.naive_not_strict.hit_rate_pct,0)}% of the rest did.`,s:'Jim\'s "persisted long enough" turned into a rule.'},
+  {v:p3.capacity.aum_where_edge_is_zero_usd/1e6,d:0,pre:'$',suf:'M',cls:'b',t:"where the machine's edge hits zero. Half gone near $"+fm(p3.capacity.aum_where_edge_is_half_usd/1e6,1)+'M.',s:'Square root impact model on its real trades.'}
+];
+$('#proofs').innerHTML=proofs.map((q,i)=>`<li><b class="${q.cls}"><span id="pf${i}">0</span>${q.post||''}</b><div>${q.t}<small>${q.s}</small></div></li>`).join('');
+proofs.forEach((q,i)=>countUp($('#pf'+i),q.v,{d:q.d,pre:q.pre||'',suf:q.suf||'',dur:1800+i*250}));
+
+// ===================== TAPE =====================
+(function(){
+  const a=p1.trades.slice(-70).map(t=>`<span class="ti"><span class="pk">20 DAY TREND</span><b>${t.side.toUpperCase()} BTC</b> ${t.entry_time} → ${t.exit_time} · ${t.days}d · <span class="${col(t.net_bp)}">${fm(t.net_bp,0,true)} bp</span> net</span>`);
+  const b=p3.trades.slice(-70).map(t=>`<span class="ti"><span class="pk">MACHINE</span><b>${t.side.toUpperCase()} ${t.symbol.replace('USDT','')}</b> ${t.time.slice(0,16).replace('T',' ')} · <span class="${col(t.weight_change_pct_of_capital)}">${fm(t.weight_change_pct_of_capital,2,true)}%</span> of capital → ${fm(t.new_weight_pct,2,true)}%</span>`);
+  const c=p2.replay.trades.slice(-70).map(t=>`<span class="ti"><span class="pk">CRV 1M FADE</span><b>${t.side.toUpperCase()}</b> ${t.entry_time.slice(11,16)} · gross <span class="${col(t.gross_bp)}">${fm(t.gross_bp,2,true)} bp</span> · after taker <span class="${col(t.net_taker_bp)}">${fm(t.net_taker_bp,2,true)} bp</span></span>`);
+  const mix=[];for(let i=0;i<70;i++){[a,b,c].forEach(arr=>{if(arr[i])mix.push(arr[i])})}
+  const html=mix.join('');$('#tape').innerHTML=html+html;
+})();
+
+// ===================== CLAIMS =====================
+const c1=p1.claims,c2=p2.claims,c3=p3.claims;
+const sel1=p1.sel,ht=p2.hit_t,ps=p2.persist,liq=p2.liq;
+const rtv=Object.fromEntries(p3.retrain.map(r=>[r.name,r]));
+const dtv=p3.datatypes;
+const CL=[
+  {ts:'~10 min',v:'MIXED',vt:'VERIFIED IN CRYPTO, BUSTED IN COMMODITIES + FX',claim:'Predict today by the average move of the past 20 days',quote:'"if you decided, okay, I\'m going to predict today by the average move in the past 20 days... years ago, such a system would work"',
+   proof:'t = '+fm(p1.pred.crypto_perps.pooled_t_stat_gross,2),pl:`next-day t-stat in crypto perps. Commodities t = ${fm(p1.pred.commodities.pooled_t_stat_gross,2)}, FX t = ${fm(p1.pred.fx.pooled_t_stat_gross,2)}.`,src:c1[0]},
+  {ts:'~10 min',v:'NOTPROVEN',vt:'NOT PROVEN: A TRAP IN CRYPTO',claim:'Try 10 day, 15 day... "see what worked best"',quote:'"try all those things and see what worked best"',
+   proof:fm(sel1.crypto_perps.sign_ls.best_is_sharpe_net,2)+' → '+fm(sel1.crypto_perps.sign_ls.its_oos_sharpe_net,2),pl:`crypto: best in-sample N = ${sel1.crypto_perps.sign_ls.best_is_N} days, Sharpe in-sample then out-of-sample. Plain 20 days kept ${fm(sel1.crypto_perps.sign_ls.n20_oos_sharpe_net,2)}.`,src:c1[1]},
+  {ts:'~10 min',v:'NOTPROVEN',vt:'NOT PROVEN: SLOPES DOWN, NOT SIGNIFICANT',claim:'Trend following faded "because everyone could see that"',quote:'"great in the 60s... sort of okay in the 70s. By the 80s... everyone could see that"',
+   proof:fm(p1.decay_fit.crypto_perps.slope_per_year,2,true)+' Sharpe/yr',pl:`crypto perps yearly Sharpe trend (p = ${fm(p1.decay_fit.crypto_perps.p_value,2)}). Commodities and FX were already near zero from 2000.`,src:c1[2]},
+  {ts:'~10 min',v:'VERIFIED',vt:'VERIFIED',claim:'It works "not beautifully"',quote:'"such a system would work, not beautifully, but it would work"',
+   proof:fm(p1.port.win_rate_days_pct,0)+'% days',pl:`win. ${fm(p1.port.win_rate,0)}% of trades win. One drawdown lasted ${fm(p1.port.longest_drawdown_days,0)} days (May 2011 to Mar 2020).`,src:c1[3]},
+  {ts:'~11 min',v:'BUSTED',vt:'BUSTED FOR RETAIL COSTS',claim:'Stay ahead with "shorter-term approaches"',quote:'"we stayed ahead of the pack by finding other approaches and shorter-term approaches"',
+   proof:'0 of '+F['held_oos_t>=2 (survived)'],pl:`real short-term anomalies beat taker costs (14 bp round trip). ${F.survived_and_positive_after_maker_costs} beat maker costs.`,src:c2[2]},
+  {ts:'~12 min',v:'NOTPROVEN',vt:'NOT PROVEN',claim:'Simulate many predictive schemes until you get better and better',quote:'"what we did was machine learning. You look at a lot of data and you try to simulate different predictive schemes"',
+   proof:fm(MAC,2)+' vs '+fm(JIM,2),pl:'final holdout Sharpe after taker: the picked machine vs Jim\'s plain 20 day trend.',src:c3[0]},
+  {ts:'~13 min',v:'VERIFIED',vt:'VERIFIED',claim:'With enough data you can tell an anomaly is not random',quote:'"any one anomaly might be a random thing. However, if you have enough data, you can tell that it\'s not"',
+   proof:fm(ht['10+'].hit_rate_pct,0)+'% vs '+fm(ht['2-3'].hit_rate_pct,0)+'%',pl:'held out-of-sample: tests with in-sample t of 10+ vs t of 2 to 3.',src:c2[0]},
+  {ts:'~13 min',v:'VERIFIED',vt:'VERIFIED: BEST FILTER',claim:'An anomaly that "persisted for a sufficiently long time" is less likely random',quote:'"you can see an anomaly that\'s persisted for a sufficiently long time, so the probability of it being random is not high"',
+   proof:fm(ps['naive_and_strict_every_chunk_t>=2'].hit_rate_pct,0)+'% vs '+fm(ps.naive_not_strict.hit_rate_pct,0)+'%',pl:'held out-of-sample: t ≥ 2 in all 4 in-sample chunks vs pooled only.',src:c2[4]},
+  {ts:'~13 min',v:'VERIFIED',vt:'VERIFIED',claim:'"These things fade after a while"',quote:'"But these things fade after a while. Anomalies can get washed out. So you have to keep on top of the business."',
+   proof:fm(p2.half_life,1)+' yr',pl:`median half-life of the survivors. The median FDR passer kept only ${fm(p2.kept*100,0)}% of its in-sample bp out-of-sample.`,src:c2[1]},
+  {ts:'~13 min',v:'VERIFIED',vt:'VERIFIED (MIXED)',claim:'"Everything is grist for the mill": more data types help',quote:'"everything is grist for the mill... the historic data itself, volumes, you name it"',
+   proof:fm(dtv[0].c['0'][1],2)+' → '+fm(dtv[2].c['0'][1],2),pl:`final holdout Sharpe (zero cost), price only vs price + volume + taker flow. Before the holdout it was mixed (${fm(dtv[0].c['0'][0],2)} vs ${fm(dtv[2].c['0'][0],2)}).`,src:c3[1]},
+  {ts:'~13 min',v:'BUSTED',vt:'BUSTED',claim:'Keep retraining: "keep on top of the business"',quote:'"So you have to keep on top of the business."',
+   proof:fm(rtv.once.taker,2)+' vs '+fm(rtv.monthly.taker,2),pl:'Sharpe after taker 2023 to 2026: train once on 2020 to 2022 vs retrain monthly.',src:c3[2]},
+  {ts:'~13 min',v:'NOTPROVEN',vt:'NOT PROVEN',claim:'Add-on: liquidation data adds signal',quote:'"everything is grist for the mill"',
+   proof:fm(p3.liq['price+volume+flow+funding'].gross_sharpe_long1_short1,2)+' → '+fm(p3.liq['+ liquidations'].gross_sharpe_long1_short1,2),pl:'gross Sharpe without vs with liquidation features (4 coins, 2025-01 to 2025-11). Only 18 months of data.',src:c3[5]},
+  {ts:'~8 min',v:'VERIFIED',vt:'VERIFIED',claim:'Returns with "surprisingly low volatility and risk"',quote:'"you took them with surprisingly low volatility and risk compared with other hedge funds"',
+   proof:fm(p3.full.vol_pct,1)+'% vol',pl:`a year, max drawdown ${fm(p3.full.max_dd_pct,1)}%, Sharpe ${fm(p3.full.sharpe,2)} after taker. Machine, walk-forward 2022-01 to 2026-10.`,src:c3[3]},
+  {ts:'~15 min',v:'VERIFIED',vt:'VERIFIED',claim:'"There\'s a capacity to the fund"',quote:'"bought out all the investors because there\'s a capacity. There\'s a capacity to the fund."',
+   proof:'$'+fm(p3.capacity.aum_where_edge_is_zero_usd/1e6,0)+'M',pl:`where the machine's edge hits zero on 16 coins. Half gone near $${fm(p3.capacity.aum_where_edge_is_half_usd/1e6,1)}M.`,src:c3[4]},
+  {ts:'~16 min',v:'VERIFIED',vt:'VERIFIED',claim:'"Spreads are narrower", more liquidity',quote:'"It\'s reduced volatility. It\'s increased liquidity. Spreads are narrower because people are trading that kind of stuff."',
+   proof:fm(liq[0].spread_proxy_bp,2)+' → '+fm(liq.find(q=>q.year===2025).spread_proxy_bp,2)+' bp',pl:`median spread proxy, 11 coins, 2020 vs 2025. Trades per minute ${fm(liq[0].med_trades_per_min,0)} → ${fm(liq.find(q=>q.year===2025).med_trades_per_min,0)}.`,src:c2[3]},
+];
+const VN={VERIFIED:'VERIFIED',BUSTED:'BUSTED',NOTPROVEN:'NOT PROVEN',MIXED:'MIXED'};
+const vColor={VERIFIED:'g',BUSTED:'r',NOTPROVEN:'b',MIXED:'y'};
+let cFilter='ALL',cSel=5;
+function drawClaims(){
+  const cnt=k=>CL.filter(c=>c.v===k).length;
+  $('#tally').innerHTML=[['VERIFIED','g'],['BUSTED','r'],['MIXED','y'],['NOTPROVEN','b']].map(([k,c])=>`<div class="${c}">${cnt(k)}<span>${VN[k]}</span></div>`).join('');
+  $('#cchips').innerHTML=['ALL','VERIFIED','BUSTED','MIXED','NOTPROVEN'].map(k=>`<span class="chip${cFilter===k?' on':''}" data-k="${k}">${k==='ALL'?'ALL '+CL.length:VN[k]}</span>`).join('');
+  $('#cards').innerHTML=CL.map((c,i)=>({c,i})).filter(o=>cFilter==='ALL'||o.c.v===cFilter).map(({c,i})=>`<div class="card${i===cSel?' on':''}" data-i="${i}"><span class="ts">${c.ts}</span><span class="v ${c.v}">${VN[c.v]}</span><div class="cl">${c.claim}</div><div class="pf ${vColor[c.v]}">${c.proof}</div></div>`).join('');
+  const c=CL[cSel];
+  $('#spot').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="mono y">${c.ts}</span><span class="v ${c.v}">${c.vt}</span></div><div class="sq">${c.claim}</div><div class="quote">${c.quote}</div><div class="bignum ${vColor[c.v]}">${c.proof}</div><div class="bl">${c.pl}</div><div class="smk"><b>TEST</b>${c.src.test}</div><div class="smk"><b>RESULT</b>${c.src.result.length>420?c.src.result.slice(0,420)+'...':c.src.result}</div>`;
+}
+$('#cchips').addEventListener('click',e=>{const k=e.target.dataset.k;if(!k)return;cFilter=k;const f=CL.findIndex(c=>k==='ALL'||c.v===k);if(f>=0&&!(k==='ALL'||CL[cSel].v===k))cSel=f;drawClaims()});
+$('#cards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;cSel=+c.dataset.i;drawClaims();if(isPhone())$('#spot').scrollIntoView({behavior:'smooth',block:'start'})});
+drawClaims();
+
+// ===================== PROCESS (package 2) =====================
+const stages=[
+  {n:F.tests_run,l:'pre-declared tests',s:'last bar, hour of day, volume spikes, taker flow, BTC lead-lag, funding, liquidations, TSLA tape',c:'#56b8ff'},
+  {n:F['naive_|t|>=2'],l:'looked real in-sample',s:'|t| ≥ 2 on daily P&L',c:'#7fc8ff'},
+  {n:F['bh_and_dsr_and_permutation (not random)'],l:'"not random" (Jim\'s test)',s:'FDR 5% + deflated Sharpe > 0.95 + shuffle test p ≤ 0.01',c:'#ffc53d'},
+  {n:F['held_oos_t>=2 (survived)'],l:'held out-of-sample',s:'same sign, OOS t ≥ 2, 2024-01 to 2026-10',c:'#22f08a'},
+  {n:F.survived_and_positive_after_taker_costs,l:'still make money after taker',s:'14 bp round trip',c:'#ff4262',zero:true},
+];
+$('#funnel').innerHTML=stages.map((s,i)=>`<div class="fstep"><div class="fn">${i+1}</div><div class="fbarw"><div class="fbar${s.zero?' zero':''}" data-w="${s.zero?100:Math.max(14,Math.sqrt(s.n/F.tests_run)*100)}" style="${s.zero?'':`background:linear-gradient(90deg,${s.c}66,${s.c}26);box-shadow:inset 3px 0 0 ${s.c},0 0 18px ${s.c}22`}"></div><div class="fcont${s.zero?' zero':''}"><span class="fc" style="color:${s.zero?C.red:s.c}">${s.n}</span><span class="fl">${s.l}<small>${s.s}</small></span></div></div></div>`).join('');
+(function(){const a={tick(){},onShow(){if(a.done)return;a.done=true;document.querySelectorAll('.fbar').forEach((b,i)=>setTimeout(()=>{b.style.width=b.dataset.w+'%'},i*380))}};register($('#funnel'),a)})();
+// fix text color for narrow bars: show label outside
+$('#funnelNote').innerHTML=`Side counts: Bonferroni alone passed <b>${F.bonferroni}</b>, FDR alone <b>${F.benjamini_hochberg_fdr5}</b>. After <b>maker</b> costs (4 bp round trip, assumes every limit fills) <b>${F.survived_and_positive_after_maker_costs}</b> survive. Bar width is the square root of the count, so small stages stay readable.`;
+
+// scatter: in-sample t vs OOS t, asinh scale
+(function(){
+  const cv=$('#anScatter');const pts=p2.pts;const S=v=>Math.asinh(v/2);
+  const a={tick(now){draw(now)}};let t0=null;
+  function draw(now){if(t0==null)t0=now;const p=Math.min(1,(now-t0)/2200);
+    const {x,w,h}=fit(cv);x.clearRect(0,0,w,h);const L=46,Rr=14,Tt=14,B=38;
+    const x0=S(0),x1=S(30),y0=S(-6),y1=S(45);
+    const X=v=>L+(S(v)-x0)/(x1-x0)*(w-L-Rr),Y=v=>Tt+(y1-S(v))/(y1-y0)*(h-Tt-B);
+    x.fillStyle='rgba(34,240,138,.05)';x.fillRect(X(2),Tt,w-Rr-X(2),Y(2)-Tt);
+    x.strokeStyle=C.line2;x.lineWidth=1;x.setLineDash([4,4]);x.beginPath();x.moveTo(X(2),Tt);x.lineTo(X(2),h-B);x.moveTo(L,Y(2));x.lineTo(w-Rr,Y(2));x.stroke();x.setLineDash([]);
+    x.beginPath();x.moveTo(L,Y(0));x.lineTo(w-Rr,Y(0));x.stroke();
+    x.font='11px JetBrains Mono, monospace';x.fillStyle=C.dim;x.textAlign='right';x.textBaseline='middle';
+    [-5,0,2,5,10,20,40].forEach(v=>x.fillText(v,L-6,Y(v)));x.textAlign='center';[0,2,5,10,20].forEach(v=>x.fillText(v,X(v),h-B+12));
+    x.fillStyle=C.muted;x.fillText('in-sample t-stat',(L+w)/2,h-6);x.save();x.translate(11,(Tt+h-B)/2);x.rotate(-Math.PI/2);x.fillText('out-of-sample t-stat',0,0);x.restore();
+    x.font='600 10px JetBrains Mono, monospace';x.fillStyle='rgba(34,240,138,.7)';x.textAlign='left';x.fillText('HELD OOS (t ≥ 2)',X(2)+8,Y(2)-10);
+    const n=Math.floor(p*pts.length);
+    for(let i=0;i<n;i++){const q=pts[i];const k=q[2];x.fillStyle=k===2?C.gold:k===1?'rgba(86,184,255,.85)':'rgba(90,102,121,.55)';const r=k===2?4.5:k===1?3.4:2.6;if(k===2){x.shadowColor=C.gold;x.shadowBlur=10}x.beginPath();x.arc(X(q[0]),Y(q[1]),r,0,7);x.fill();x.shadowBlur=0}
+    if(p>=1){const top=pts.filter(q=>q[2]===2).sort((a,b)=>b[1]-a[1])[0];const q=(now%1600)/1600;x.strokeStyle=`rgba(255,197,61,${1-q})`;x.lineWidth=2;x.beginPath();x.arc(X(top[0]),Y(top[1]),5+q*20,0,7);x.stroke();
+      x.fillStyle=C.gold;x.font='800 12px JetBrains Mono, monospace';x.textAlign='right';x.fillText(top[3]+'  t '+fm(top[1],1),X(top[0])-12,Y(top[1]))}
+  }
+  register(cv,a);
+  $('#scNote').innerHTML='Scale is squashed (asinh) so a t of 2 and a t of 40 both fit. Every dot is one of the 224 real tests. The top gold dot is CRV: huge t, but it is bid-ask bounce (see the replay below).';
+})();
+
+barsOnShow($('#hitT'),{labels:['t 2-3','t 3-5','t 5-10','t 10+'],values:['2-3','3-5','5-10','10+'].map(k=>ht[k].hit_rate_pct),unit:'%',d:0,cls:['neu','neu','neu','pos'],hi:3,base:0,h:190,fmtv:v=>fm(v,0)+'%'});
+barsOnShow($('#persist'),{labels:['every chunk t≥2','pooled only','all 3 checks','|t|≥2 only'],values:[ps['naive_and_strict_every_chunk_t>=2'].hit_rate_pct,ps.naive_not_strict.hit_rate_pct,p2.hit.not_random_all_3_checks.hit_rate_pct,p2.hit['naive_|t|>=2'].hit_rate_pct],unit:'%',cls:['pos','neg','gold','neg'],hi:0,base:0,h:190,fmtv:v=>fm(v,0)+'%'});
+barsOnShow($('#decay2'),{labels:p2.decay.map(d=>d.period),values:p2.decay.map(d=>d.metric),cls:p2.decay.map(d=>+d.period>=2024?'neg':'neu'),base:0,h:190,fmtv:v=>fm(v,2)+'x'});
+$('#decay2').insertAdjacentHTML('afterend',`<div class="note">Blue = in-sample years, red = out-of-sample. Median survivor half-life: <b>${fm(p2.half_life,2)} years</b>. ${p2.no_fade} of 13 survivors showed no fade.</div>`);
+
+// CRV replay
+(function(){
+  const rb=p2.replay.bars.map(b=>({t:T(b[0]),o:b[1],h:b[2],l:b[3],c:b[4],s:b[5],lab:b[0].replace('T',' ').slice(0,16)+' UTC'}));
+  const tr=p2.replay.trades.filter(t=>T(t.entry_time)>=rb[0].t);
+  const ev=tr.map(t=>({i:idxOf(rb,T(t.entry_time)),i1:idxOf(rb,T(t.exit_time)),price:t.entry,exit:t.exit,pnl:t.net_taker_bp,dir:t.side==='long'?1:-1,
+    log:`<span class="y">FADE</span> ${t.side.toUpperCase()} @ ${fm(t.entry,4)} → ${fm(t.exit,4)} · gross <span class="${col(t.gross_bp)}">${fm(t.gross_bp,2,true)} bp</span> · after taker <span class="${col(t.net_taker_bp)}">${fm(t.net_taker_bp,2,true)} bp</span> <span class="m">${t.entry_time.slice(11,16)}</span>`}));
+  replay($('#rp2'),$('#rp2log'),rb.slice(-200),ev.filter(e=>e.i>=rb.length-200).map(e=>({...e,i:e.i-(rb.length-200),i1:e.i1-(rb.length-200)})),{pfmt:v=>fm(v,4),dur:18000});
+  const top=p2.surv[0];
+  $('#crvTag').textContent=`OOS t ${fm(top.oos_t,1)}`;
+  $('#crvNote').innerHTML=`OOS (2024-01 to 2026-10): <b class="g">${fm(top.oos_bp,2,true)} bp</b> gross a trade, <b class="r">${fm(top.taker,2,true)} bp</b> after taker, ${fm(top.maker,2,true)} bp after maker. But one CRV price tick is <b>${fm(top.tick,1)} bp</b>. A ${fm(top.oos_bp,1)} bp edge is a quarter of one tick: bid-ask bounce, not alpha.`;
+})();
+
+barsOnShow($('#spreads'),{labels:liq.map(q=>q.year),values:liq.map(q=>q.spread_proxy_bp),base:0,cls:liq.map(()=>'gold'),h:150,fmtv:v=>fm(v,2)});
+barsOnShow($('#tpm'),{labels:liq.map(q=>q.year),values:liq.map(q=>q.med_trades_per_min),base:0,cls:liq.map(()=>'neu'),h:120,fmtv:v=>fm(v,0)});
+$('#spreadNote').innerHTML=`Real BTC perp quoted spread (Binance bookTicker): <b>${fm(p2.quoted[0].median_spread_bp,3)} bp</b> (${p2.quoted[0].file.slice(-10)}) to <b>${fm(p2.quoted[1].median_spread_bp,3)} bp</b> (${p2.quoted[1].file.slice(-10)}). Cheaper to trade, so tiny edges get arbitraged away faster.`;
+
+// ===================== COST SLIDER =====================
+const RC={trend20:C.green,blend_all:C.blue,blend_pv:C.red,ridge:C.violet,gbm:'#ff9f43',best1:C.dim};
+let costI=5;
+$('#costTicks').innerHTML=COSTS.map(c=>`<span>${c}</span>`).join('');
+const costChartA=(function(){
+  const cv=$('#costChart');const a={tick(now){draw(now)}};
+  function draw(now){const {x,w,h}=fit(cv);x.clearRect(0,0,w,h);const L=44,Rr=isPhone()?16:150,Tt=14,B=30;
+    const all=RACE.flatMap(r=>COSTS.map(c=>r.c[String(c)][1]));const y0=Math.min(...all)-.2,y1=Math.max(...all)+.2;
+    const X=c=>L+c/15*(w-L-Rr),Y=v=>Tt+(y1-v)/(y1-y0)*(h-Tt-B);
+    x.font='11px JetBrains Mono, monospace';x.textBaseline='middle';
+    for(let v=Math.ceil(y0);v<=y1;v+=1){x.strokeStyle=v===0?C.line2:C.line;x.lineWidth=v===0?1.5:1;x.beginPath();x.moveTo(L,Y(v));x.lineTo(w-Rr,Y(v));x.stroke();x.fillStyle=C.dim;x.textAlign='right';x.fillText(fm(v,0),L-6,Y(v))}
+    x.textAlign='center';COSTS.forEach(c=>x.fillText(c,X(c),h-B+12));x.fillStyle=C.muted;x.fillText('cost, bp per side',(L+w-Rr)/2,h-6);
+    // maker/taker marks
+    [[2,'MAKER'],[7,'TAKER']].forEach(([c,l])=>{x.strokeStyle='rgba(255,255,255,.08)';x.setLineDash([3,4]);x.beginPath();x.moveTo(X(c),Tt);x.lineTo(X(c),h-B);x.stroke();x.setLineDash([]);x.fillStyle=C.dim;x.font='600 10px JetBrains Mono, monospace';x.fillText(l,X(c),Tt+4)});
+    const cc=COSTS[costI];x.strokeStyle=C.gold;x.lineWidth=2;x.beginPath();x.moveTo(X(cc),Tt);x.lineTo(X(cc),h-B);x.stroke();
+    RACE.forEach(r=>{x.strokeStyle=RC[r.key];x.lineWidth=r.key==='blend_pv'||r.key==='trend20'?3:1.8;x.beginPath();COSTS.forEach((c,i)=>{const v=r.c[String(c)][1];i?x.lineTo(X(c),Y(v)):x.moveTo(X(c),Y(v))});x.stroke();
+      const v=r.c[String(cc)][1];const q=(now%1400)/1400;x.fillStyle=RC[r.key];x.beginPath();x.arc(X(cc),Y(v),4.5,0,7);x.fill();
+      if(r.key==='trend20'||r.key==='blend_pv'){x.strokeStyle=RC[r.key];x.globalAlpha=1-q;x.lineWidth=2;x.beginPath();x.arc(X(cc),Y(v),5+q*14,0,7);x.stroke();x.globalAlpha=1}
+      if(!isPhone()){const lv=r.c['15'][1];x.font='600 11px JetBrains Mono, monospace';x.textAlign='left';x.fillStyle=RC[r.key];x.fillText(r.key==='blend_pv'?'THE MACHINE':r.name.replace(" (1 line)",'').replace('Blend, all 25 features','Blend (all)'),X(15)+8,Y(lv))}});
+  }
+  return register(cv,a);
+})();
+function drawCost(){
+  const c=COSTS[costI];$('#costLbl').textContent=c+' bp'+(c===2?' (maker)':c===7?' (taker)':'');$('#costTag').textContent=c+' BP PER SIDE · '+(2*c)+' BP ROUND TRIP';
+  const alive=RACE.filter(r=>r.c[String(c)][1]>0).length;
+  const jim=sh('trend20',c,1),mac=sh('blend_pv',c,1);
+  $('#costBig').innerHTML=`<span class="${jim>mac?'g':'r'}">${jim>mac?'JIM WINS':'MACHINE WINS'}</span>`;
+  $('#costBigL').innerHTML=`20 day trend <b class="g">${fm(jim,2)}</b> vs the picked machine <b class="r">${fm(mac,2)}</b>. ${alive} of 6 models still above zero.`;
+  $('#costRead').innerHTML=RACE.map(r=>{const v=r.c[String(c)][1];return `<div class="cr${v<=0?' dead':''}"><i style="background:${RC[r.key]}"></i><span class="nm">${r.name}</span><span class="val ${col(v)}">${fm(v,2,true)}</span></div>`}).join('');
+  const rt=2*c;const vals=p2.surv.map(s=>s.oos_bp-rt);const mx=Math.max(...p2.surv.map(s=>s.oos_bp));const lo=-2*COSTS[COSTS.length-1];
+  const g=$('#survGrid');
+  if(!g.children.length)g.innerHTML=p2.surv.map(s=>`<div class="sv" title="${s.id}: ${fm(s.oos_bp,2)} bp gross OOS"><div class="sz"></div><div class="sb"></div><div class="sval"></div><div class="sl">${s.id.split('_').slice(1).join(' ')}</div></div>`).join('');
+  const zp=mx/(mx-lo)*100;
+  [...g.children].forEach((el,i)=>{const v=vals[i];const b=el.querySelector('.sb');const hpc=Math.abs(v)/(mx-lo)*100;
+    el.querySelector('.sz').style.top=zp+'%';b.style.top=(v>=0?zp-hpc:zp)+'%';b.style.height=Math.max(.6,hpc)+'%';b.style.background=v>0?'linear-gradient(180deg,#22f08a,#0f7a47)':'linear-gradient(0deg,#ff4262,#7a1426)';
+    const sv=el.querySelector('.sval');sv.textContent=fm(v,1,true);sv.className='sval '+col(v);sv.style.top=(v>=0?zp-hpc-12:zp+hpc+2)+'%'});
+  const nAlive=vals.filter(v=>v>0).length;
+  $('#survCapBox').innerHTML=`<div class="cr" style="margin-top:7px;border-color:${nAlive?'var(--green2)':'var(--red2)'}"><i style="background:${nAlive?C.green:C.red}"></i><span class="nm">Anomaly survivors still positive at a ${rt} bp round trip (biggest gross edge ${fm(mx,2)} bp a trade)</span><span class="val ${nAlive?'g':'r'}">${nAlive} of ${p2.surv.length}</span></div>`;
+}
+$('#costR').addEventListener('input',e=>{costI=+e.target.value;drawCost()});
+(function(){
+  const rows=RACE.map(r=>{const d=COSTS.find(c=>r.c[String(c)][1]<=0);return {n:r.name,col:RC[r.key],txt:d==null?'alive at 15 bp':d===0?'dead at 0 bp':'dies at '+d+' bp',cl:d==null?'g':d>7?'y':'r'}});
+  rows.push({n:'LightGBM, every 4h bar, no smoothing',col:'#ff9f43',txt:(()=>{const d=COSTS.find(c=>p3.gbm_raw[String(c)]<=0);return 'dies at '+d+' bp'})(),cl:'r'});
+  const best=p2.surv[0];rows.push({n:'Best anomaly ('+best.id.split('_').slice(1).join(' ')+')',col:C.gold,txt:'dies at '+fm(best.oos_bp/2,2)+' bp',cl:'r'});
+  $('#dieList').innerHTML=rows.map(r=>`<div class="cr"><i style="background:${r.col}"></i><span class="nm">${r.n}</span><span class="val ${r.cl}" style="font-size:15px">${r.txt}</span></div>`).join('')+`<div class="note">bp per side. Holdout Sharpe for the models. The anomaly dies when cost per side passes half its ${fm(best.oos_bp,2)} bp gross edge.</div>`;
+})();
+drawCost();
+
+// ===================== TREND LAB =====================
+const GN={crypto_perps:'Crypto perps',crypto_spot_long:'Crypto spot',commodities:'Commodities',fx:'FX',index_futures:'Index futures',stocks_SPY:'SPY',stocks_TSLA:'TSLA',all_markets:'All markets'};
+const VNm={sign_ls:'Long/short (literal)',long_only:'Long only',sized:'Sized by trend'};
+let lg='crypto_perps',lv='sign_ls',lN=20;
+$('#segG').innerHTML=Object.keys(GN).map(k=>`<button data-k="${k}">${GN[k]}</button>`).join('');
+$('#segV').innerHTML=Object.keys(VNm).map(k=>`<button data-k="${k}">${VNm[k]}</button>`).join('');
+function Ns(){return Object.keys(p1.pgrid[lg][lv]).map(Number).sort((a,b)=>a-b)}
+function setN(n){const a=Ns();let best=a[0];a.forEach(v=>{if(Math.abs(v-n)<Math.abs(best-n))best=v});lN=best;$('#nR').max=a.length-1;$('#nR').value=a.indexOf(best)}
+const labChart=(function(){
+  const cv=$('#labChart');const a={tick(now){draw(now)}};
+  function draw(now){const {x,w,h}=fit(cv);x.clearRect(0,0,w,h);const L=44,Rr=16,Tt=16,B=30;
+    const g=p1.pgrid[lg][lv];const a1=Ns();const vals=a1.flatMap(n=>[g[n][0],g[n][1]]);const y0=Math.min(0,...vals)-.15,y1=Math.max(...vals)+.15;
+    const lx=n=>Math.log(n);const X=n=>L+(lx(n)-lx(2))/(lx(250)-lx(2))*(w-L-Rr),Y=v=>Tt+(y1-v)/(y1-y0)*(h-Tt-B);
+    x.font='11px JetBrains Mono, monospace';x.textBaseline='middle';
+    for(let i=0;i<=4;i++){const v=y0+(y1-y0)*i/4;x.strokeStyle=C.line;x.lineWidth=1;x.beginPath();x.moveTo(L,Y(v));x.lineTo(w-Rr,Y(v));x.stroke();x.fillStyle=C.dim;x.textAlign='right';x.fillText(fm(v,1),L-6,Y(v))}
+    x.strokeStyle=C.line2;x.setLineDash([4,4]);x.beginPath();x.moveTo(L,Y(0));x.lineTo(w-Rr,Y(0));x.stroke();x.setLineDash([]);
+    x.textAlign='center';[2,5,10,20,50,100,250].forEach(n=>x.fillText(n,X(n),h-B+12));x.fillStyle=C.muted;x.fillText('lookback N, days (log scale)',(L+w)/2,h-5);
+    [[0,C.violet],[1,C.green]].forEach(([k,c])=>{x.strokeStyle=c;x.lineWidth=2;x.beginPath();a1.forEach((n,i)=>i?x.lineTo(X(n),Y(g[n][k])):x.moveTo(X(n),Y(g[n][k])));x.stroke()});
+    const s=p1.sel[lg][lv];const bn=s.best_is_N;
+    if(g[bn]){x.strokeStyle=C.red;x.setLineDash([3,3]);x.beginPath();x.moveTo(X(bn),Tt);x.lineTo(X(bn),h-B);x.stroke();x.setLineDash([]);x.fillStyle=C.red;x.font='600 10px JetBrains Mono, monospace';x.textAlign=X(bn)>w-120?'right':'left';x.fillText('BEST IN-SAMPLE N='+bn,X(bn)+(x.textAlign==='right'?-5:5),Tt+4)}
+    const q=(now%1400)/1400;const v=g[lN];x.strokeStyle=C.gold;x.lineWidth=1.5;x.beginPath();x.moveTo(X(lN),Tt);x.lineTo(X(lN),h-B);x.stroke();
+    [[0,C.violet],[1,C.green]].forEach(([k,c])=>{x.fillStyle=c;x.beginPath();x.arc(X(lN),Y(v[k]),5,0,7);x.fill();x.strokeStyle=c;x.globalAlpha=1-q;x.beginPath();x.arc(X(lN),Y(v[k]),5+q*14,0,7);x.stroke();x.globalAlpha=1});
+  }
+  return register(cv,a);
+})();
+function drawLab(){
+  document.querySelectorAll('#segG button').forEach(b=>b.classList.toggle('on',b.dataset.k===lg));
+  document.querySelectorAll('#segV button').forEach(b=>b.classList.toggle('on',b.dataset.k===lv));
+  const g=p1.pgrid[lg][lv][lN];const s=p1.sel[lg][lv];const sp=p1.splits[lg];
+  $('#nTxt').textContent='N = '+lN+(lN===20?" (Jim's)":lN===s.best_is_N?' (best in-sample)':'');$('#varTxt').textContent=VNm[lv];
+  $('#rIS').innerHTML=`<span class="${col(g[0])}">${fm(g[0],2)}</span>`;$('#rISd').textContent=`before ${sp}, after costs (gross ${fm(g[2],2)})`;
+  $('#rOOS').innerHTML=`<span class="${col(g[1])}">${fm(g[1],2)}</span>`;$('#rOOSd').textContent=`${sp} on, after costs (gross ${fm(g[3],2)})`;
+  const bh=p1.bh[lg];$('#rBH').innerHTML=bh?`<span class="${col(bh.oos_sharpe)}">${fm(bh.oos_sharpe,2)}</span>`:'<span class="m" style="font-size:.5em">not run</span>';
+  $('#labChartT').innerHTML=`<b>${GN[lg]}</b>, ${VNm[lv].toLowerCase()}: Sharpe after costs for every lookback tested. Hold 1 day, re-check daily.`;
+  $('#labNote').innerHTML=`Picking the best N in-sample (<b>N = ${s.best_is_N}</b>, Sharpe ${fm(s.best_is_sharpe_net,2)}) gave <b class="${col(s.its_oos_sharpe_net)}">${fm(s.its_oos_sharpe_net,2)}</b> out-of-sample. Plain 20 days gave <b class="${col(s.n20_oos_sharpe_net)}">${fm(s.n20_oos_sharpe_net,2)}</b>. Costs: ${lg.startsWith('crypto')?'7 bp a side (Binance taker + slippage)':lg.startsWith('stocks')?'1 bp + half a cent a share':'1 bp a side (Moon Dev guess, the video gives none)'}. ${lg==='all_markets'?'':'Split: in-sample before '+sp+'.'}`;
+}
+$('#segG').addEventListener('click',e=>{const k=e.target.dataset.k;if(!k)return;lg=k;setN(lN);drawLab();drawDecay1()});
+$('#segV').addEventListener('click',e=>{const k=e.target.dataset.k;if(!k)return;lv=k;setN(lN);drawLab()});
+$('#nR').addEventListener('input',e=>{lN=Ns()[+e.target.value];drawLab();$('#preJim').classList.remove('on');$('#preTrap').classList.remove('on')});
+$('#preJim').addEventListener('click',()=>{setN(20);drawLab();$('#preJim').classList.add('on');$('#preTrap').classList.remove('on')});
+$('#preTrap').addEventListener('click',()=>{setN(p1.sel[lg][lv].best_is_N);drawLab();$('#preTrap').classList.add('on');$('#preJim').classList.remove('on')});
+setN(20);drawLab();$('#preJim').classList.add('on');
+
+// which market
+(function(){
+  const m=p1.mkt20;const order=['crypto_perps','crypto_spot_long','commodities','fx','index_futures','stocks_SPY','stocks_TSLA'];
+  const keys=Object.keys(m).sort((a,b)=>order.indexOf(m[a].group)-order.indexOf(m[b].group)||m[b].oos-m[a].oos);
+  const bg=v=>{const t=Math.max(-1,Math.min(1,v/0.8));return t>=0?`rgba(34,240,138,${.12+t*.55})`:`rgba(255,66,98,${.12-t*.55})`};
+  const short=k=>k.replace('USDT-perp','').replace('USDT-spot',' spot').replace(/ \(.*\)/,'');
+  $('#mkts').innerHTML=keys.map(k=>`<div class="mk" data-k="${k}" style="background:${bg(m[k].oos)}"><b>${short(k)}</b>${fm(m[k].oos,2,true)}</div>`).join('');
+  function show(k){const q=m[k];document.querySelectorAll('.mk').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+    $('#mkDetail').innerHTML=`<b>${k}</b> (${GN[q.group]}). Jim's 20 day rule: in-sample <b class="${col(q.is)}">${fm(q.is,2)}</b>, out-of-sample <b class="${col(q.oos)}">${fm(q.oos,2)}</b>. "See what worked best" picked N = <b>${q.best_N}</b> (in-sample ${fm(q.best_is,2)}), which did <b class="${col(q.best_oos)}">${fm(q.best_oos,2)}</b> out-of-sample. Just holding it: ${fm(q.bh,2)}. All Sharpe, after costs.`}
+  $('#mkts').addEventListener('click',e=>{const c=e.target.closest('.mk');if(c)show(c.dataset.k)});
+  show('BTCUSDT-perp');
+})();
+
+// decay per group
+function drawDecay1(){
+  const d=p1.decay[lg]||[];const f=p1.decay_fit[lg];
+  $('#decTag').textContent=GN[lg].toUpperCase();
+  $('#dec1T').innerHTML=`<b>${GN[lg]}</b>: yearly Sharpe of the 20 day long/short rule, zero cost. Change the market in the lab above.`;
+  const step=d.length>12?2:1;
+  bars($('#decay1'),{labels:d.map((q,i)=>i%step?'':q[0].slice(2)),values:d.map(q=>q[1]),h:200,fmtv:v=>d.length>12?'':fm(v,1)});
+  $('#dec1N').innerHTML=f?`Straight-line trend: <b class="${col(f.slope_per_year)}">${fm(f.slope_per_year,3,true)} Sharpe a year</b> (${f.first_year} to ${f.last_year}, p = ${fm(f.p_value,2)}). ${f.p_value>0.05?'Not significant: maybe fading, not proven.':'Significant.'} We have no 1960s to 1980s data, so we cannot see the years Jim says it was great.`:'';
+}
+drawDecay1();
+
+// BTC replay
+(function(){
+  const rb=p1.replay.bars.map(b=>({t:T(b[0]),o:b[1],h:b[2],l:b[3],c:b[4],s:b[5],lab:b[0]}));
+  const ev=p1.replay.trades.filter(t=>T(t.entry_time)>=rb[0].t).map(t=>({i:idxOf(rb,T(t.entry_time)),i1:idxOf(rb,T(t.exit_time)),price:t.entry_price,exit:t.exit_price,pnl:t.net_bp,dir:t.side==='long'?1:-1,
+    log:`<span class="y">${t.side==='long'?'LONG':'SHORT'}</span> BTC ${t.entry_time} @ ${fm(t.entry_price,0)} → ${t.exit_time} @ ${fm(t.exit_price,0)} · ${t.days}d · <span class="${col(t.net_bp)}">${fm(t.net_bp,0,true)} bp</span> net`}));
+  replay($('#rp1'),$('#rp1log'),rb,ev,{pfmt:v=>fm(v,0),dur:20000,padR:66,band:true,bandMax:1,bandLabel:'20 DAY SIGNAL: GREEN LONG, RED SHORT'});
+})();
+
+// all markets equity
+lineAnim($('#eq1'),()=>[{pts:p1.eq.map(q=>[T(q[0]),q[1]]),color:C.violet,splitColor:C.green,fill:'rgba(179,148,255,.12)',label:q=>fm(q[1],2)+'x'}],{split:T(p1.splits.all_markets),y0:1,yfmt:v=>fm(v,2)+'x',dur:5200});
+$('#kv1').innerHTML=[['SHARPE (NET)',fm(p1.port.sharpe,2),''],['WIN DAYS',fm(p1.port.win_rate_days_pct,1)+'%',''],['LONGEST DRAWDOWN',fm(p1.port.longest_drawdown_days,0)+' days','r'],['MAX DRAWDOWN',fm(p1.port.max_dd_pct,1)+'%','r'],['VOL A YEAR',fm(p1.port.vol_pct,1)+'%',''],['OOS SHARPE (2018 ON)',fm(p1.port.out_of_sample.sharpe,2),'g']].map(([a,b,c])=>`<div class="${c}"><span>${a}</span>${b}</div>`).join('');
+barsOnShow($('#tfBars'),{labels:p1.tf.flatMap(q=>[q.tf+' gross',q.tf+' net']),values:p1.tf.flatMap(q=>[q.oos_gross,q.oos_net]),cls:p1.tf.flatMap(q=>['neu',q.oos_net>=0?'pos':'neg']),h:170,d:2});
+
+// ===================== MACHINE =====================
+lineAnim($('#eq3'),()=>[{pts:p3.eq.map(q=>[T(q[0]),q[1]]),color:C.blue,splitColor:C.red,fill:'rgba(86,184,255,.12)',label:q=>fm(q[1],2)+'x'}],{split:T('2025-07-01'),splitLabel:'FINAL HOLDOUT',isLabel:'WALK-FORWARD (USED TO PICK)',y0:1,yfmt:v=>fm(v,2)+'x',dur:5200});
+$('#kv3').innerHTML=[['HOLDOUT SHARPE',fm(p3.oos.taker_7bp.sharpe,2),'r'],['HOLDOUT RETURN/YR',fm(p3.oos.taker_7bp.ann_return_pct,1)+'%',''],['HOLDOUT MAX DD',fm(p3.oos.taker_7bp.max_dd_pct,1)+'%','r'],['2022-01 TO 2025-06',fm(p3.is.taker_7bp.sharpe,2),'g'],['VOL A YEAR',fm(p3.full.vol_pct,1)+'%',''],['WIN BARS (4H)',fm(p3.oos.taker_7bp.hit_rate*100,1)+'%','']].map(([a,b,c])=>`<div class="${c}"><span>${a}</span>${b}</div>`).join('');
+let dtM=1;
+function drawDT(){const v=dtv.map(d=>d.c['0'][dtM]);bars($('#dtBars'),{labels:dtv.map(d=>d.name),values:v,cls:v.map((q,i)=>i===2?'gold':'neu'),hi:dtM?2:-1,base:0,h:200,d:2});$('#dtTog').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.m===dtM))}
+$('#dtTog').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;dtM=+b.dataset.m;drawDT()});
+$('#dtNote').innerHTML=`Same blend model, 4h bars, monthly retrain, target = next 24 hours. Before the holdout: ${dtv.map(d=>d.name+' <b>'+fm(d.c['0'][0],2)+'</b>').join(', ')}. Only volume helped. On the holdout, adding taker flow lifted it from <b>${fm(dtv[0].c['0'][1],2)}</b> to <b>${fm(dtv[2].c['0'][1],2)}</b>. Mixed, but real.`;
+register($('#dtBars'),{tick(){},onShow(){if(this.done)return;this.done=true;drawDT()}});
+(function(){const top=p3.fi.top.slice(0,8);const NM={vol_168:'7d vol',tbi_168:'7d taker',btc_r_24:'BTC 1d',dist_high_480:'20d high',vol_24:'1d vol',mkt_vol_24:'mkt vol',r_480:'20d ret',sharpe_480:'ret/vol',r_72:'3d ret',r_240:'10d ret'};
+  barsOnShow($('#fiBars'),{labels:top.map(f=>NM[f.feature]||f.feature),values:top.map(f=>f.gbm_gain_pct),cls:top.map(f=>f.feature==='r_480'?'gold':f.group==='taker flow'?'vio':f.group==='context'?'neu':'pos'),base:0,h:200,fmtv:v=>fm(v,1)});
+  const g=p3.fi.group_gbm_gain_pct;$('#fiNote').innerHTML=`By group: price ${fm(g['price (incl. 20 day trend)'],0)}%, context ${fm(g.context,0)}%, taker flow ${fm(g['taker flow'],0)}%, volume ${fm(g['volume / trade count'],0)}%, funding ${fm(g.funding,1)}%. Gold = Jim's 20 day return. Top idea: calm coins beat wild ones (7d vol, holdout IC ${fm(top[0].oos_ic_holdout,3)}).`})();
+barsOnShow($('#rtBars'),{labels:p3.retrain.map(r=>r.name),values:p3.retrain.map(r=>r.taker),cls:p3.retrain.map(r=>r.name==='once'?'gold':'neu'),hi:2,base:0,h:200,d:2});
+barsOnShow($('#dec3'),{labels:p3.decay.map(d=>d.period),values:p3.decay.map(d=>d.metric),h:200,d:2});
+$('#dec3N').innerHTML=`2026 so far: <b class="r">${fm(p3.decay[p3.decay.length-1].metric,2)}</b> (train-once version ${fm(p3.decay[p3.decay.length-1].train_once_sharpe,2)}). This could be Jim's "anomalies fade" happening right now, or one bad year. One year can't prove which.`;
+// SOL replay
+(function(){
+  const rb=p3.replay.bars.map(b=>({t:T(b[0]),o:b[1],h:b[2],l:b[3],c:b[4],s:b[5],lab:b[0].replace('T',' ').slice(0,16)+' UTC'}));
+  const mx=Math.max(...rb.map(b=>Math.abs(b.s)));
+  const ev=p3.replay.trades.map(t=>({i:idxOf(rb,T(t.time)),price:t.price,dir:t.side==='buy'?1:-1,log:`<span class="y">${t.side.toUpperCase()}</span> SOL @ ${fm(t.price,2)} · new weight <b>${fm(t.new_weight_pct,2,true)}%</b> of capital <span class="m">${t.time.replace('T',' ').slice(0,16)}</span>`}));
+  replay($('#rp3'),$('#rp3log'),rb,ev,{pfmt:v=>fm(v,1),dur:18000,band:true,bandMax:mx,bandLabel:'MACHINE WEIGHT IN SOL (GREEN LONG, RED SHORT)'});
+})();
+(function(){const g=p3.gbm_raw;const ks=COSTS;barsOnShow($('#gbmRaw'),{labels:ks.map(c=>c+' bp'),values:ks.map(c=>g[String(c)]),h:200,d:2});
+  $('#gbmNote').innerHTML=`At zero cost LightGBM made <b class="g">${fm(g['0'],2)}</b> on the holdout. It trades so often that at 7 bp a side it made <b class="r">${fm(g['7'],2)}</b>. Jim's fast edge needs Jim's costs. Smoothing cut the cost but also killed the signal.`})();
+
+// ===================== FEES =====================
+const FEE=[
+  {n:"Jim's 20 day trend, all markets, long-only",s:'2018-01 to 2026-10 (out-of-sample)',v:[p1.fees.before_fees.cagr_pct,p1.fees.after_2_and_20.cagr_pct,p1.fees.after_5_and_44.cagr_pct]},
+  {n:'The machine, 2022-01 to 2026-10',s:'walk-forward, after taker',v:[p3.fees20.oos_2022_2026.fund_cagr_before_fees_pct,p3.fees20.oos_2022_2026.investor_cagr_pct,p3.fees44.oos_2022_2026.investor_cagr_pct]},
+  {n:'The machine, final holdout only',s:'2025-07 to 2026-10',v:[p3.fees20.holdout.fund_cagr_before_fees_pct,p3.fees20.holdout.investor_cagr_pct,p3.fees44.holdout.investor_cagr_pct]},
+];
+let feeI=2,feeAuto=true;
+$('#feeBars').innerHTML=FEE.map((f,i)=>`<div class="hbar"><div class="hl">${f.n}<small>${f.s}</small></div><div class="ht"><div class="hz"></div><div class="hf" id="hf${i}"></div></div><div class="hv" id="hv${i}"></div></div>`).join('');
+function drawFee(){const lo=-6,hi=16;const X=v=>(v-lo)/(hi-lo)*100;
+  document.querySelectorAll('#feeStops button').forEach(b=>b.classList.toggle('on',+b.dataset.f===feeI));
+  FEE.forEach((f,i)=>{const v=f.v[feeI];const el=$('#hf'+i);el.style.left=Math.min(X(0),X(v))+'%';el.style.width=Math.abs(X(v)-X(0))+'%';el.style.background=v>=0?(feeI===0?'linear-gradient(90deg,#0f7a47,#22f08a)':'linear-gradient(90deg,#7a5a0c,#ffc53d)'):'linear-gradient(270deg,#7a1426,#ff4262)';
+    el.parentElement.querySelector('.hz').style.left=X(0)+'%';const hv=$('#hv'+i);hv.textContent=fm(v,1,true)+'%';hv.className='hv '+col(v)});
+  const a=FEE[0].v;$('#feeNote').innerHTML=feeI===0?`Before fees. Now slide to 5 and 44.`:`Investors keep <b class="y">${fm(a[feeI],1)}%</b> a year out of <b>${fm(a[0],1)}%</b> on the trend version. Renaissance fees only work on an edge far bigger than any Moon Dev found here. Holding everything at equal risk had a ${fm(p1.bh.all_markets.oos_sharpe,2)} OOS Sharpe, so part of the trend return is just being long.`}
+$('#feeStops').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;feeAuto=false;feeI=+b.dataset.f;drawFee()});
+register($('#feeBars'),{tick(){},onShow(){if(this.done)return;this.done=true;feeI=0;drawFee();setTimeout(()=>{if(feeAuto){feeI=1;drawFee()}},1400);setTimeout(()=>{if(feeAuto){feeI=2;drawFee()}},2800)}});
+setInterval(()=>{if(!feeAuto)return;feeI=(feeI+1)%3;drawFee()},4200);
+
+// capacity
+(function(){
+  const P=p3.capacity.participation;const ks=Object.keys(P);let ci=1;
+  $('#capStops').innerHTML=ks.map((k,i)=>`<button data-i="${i}">${k.replace(',000,000','M').replace('00,000','00K').replace('$100M','$100M')}</button>`).join('');
+  function draw(){document.querySelectorAll('#capStops button').forEach(b=>b.classList.toggle('on',+b.dataset.i===ci));const q=P[ks[ci]];
+    $('#capKv').innerHTML=[['MEDIAN TRADE, % OF 4H BAR VOL',fm(q.median_pct_of_bar_volume,2)+'%',''],['BIG TRADES (95TH PCT)',fm(q.p95_pct_of_bar_volume,1)+'%',q.p95_pct_of_bar_volume>10?'r':''],['IMPACT COST A YEAR',fm(q.impact_drag_pct_per_year,2)+'%',q.impact_drag_pct_per_year>7?'r':q.impact_drag_pct_per_year>2?'y':'g']].map(([a,b,c])=>`<div class="${c}"><span>${a}</span>${b}</div>`).join('')}
+  $('#capStops').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;ci=+b.dataset.i;draw()});draw();
+  const lx=v=>(Math.log10(v)-5)/(8.3-5)*100;const c=p3.capacity;
+  const mk=[[1e5,'$100K',C.green,0,'l'],[c.aum_where_edge_is_half_usd,'HALF GONE $'+fm(c.aum_where_edge_is_half_usd/1e6,1)+'M',C.gold,1,'r'],[c.aum_where_holdout_edge_is_zero_usd,'HOLDOUT ZERO $'+fm(c.aum_where_holdout_edge_is_zero_usd/1e6,1)+'M','#ff9f43',0,'c'],[c.aum_where_edge_is_zero_usd,'ZERO $'+fm(c.aum_where_edge_is_zero_usd/1e6,1)+'M',C.red,1,'l']];
+  $('#capTrack').insertAdjacentHTML('beforeend',mk.map(([v,l,cc,up,an])=>{const x=Math.min(97,Math.max(2,lx(v)));const tr=an==='r'?'translateX(-100%)':an==='l'?'translateX(0)':'translateX(-50%)';
+    return `<div style="position:absolute;left:${x}%;top:${up?18:30}px;width:2px;height:12px;background:${cc};transform:translateX(-1px)"></div><div class="mkr" style="left:${x}%;transform:${tr};color:${cc};top:${up?0:44}px">${l}</div>`}).join(''));
+  $('#capNote').innerHTML=`Impact model: cost = 1.0 x daily vol x square root of (trade $ / 30 day average daily $ volume). The 1.0 is a rule of thumb, not from the video. The machine made ${fm(p3.full.ann_return_pct,1)}% a year before impact (2022-01 to 2026-10). At $100M, impact alone eats ${fm(P['$100,000,000'].impact_drag_pct_per_year,1)}% a year. That is why Jim capped Medallion.`;
+})();
+
+// ===================== BOT =====================
+(function(){
+  const src=D.bot;const el=$('#code');let i=0,started=false;
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function hl(s){return esc(s).replace(/(#[^\n]*)|("""[\s\S]*?(?:"""|$)|"[^"\n]*"?|'[^'\n]*'?)|\b(import|from|def|return|if|else|elif|for|in|not|and|or|None|True|False|raise|with|as|lambda)\b|\b(\d[\d_]*\.?\d*)\b|\b([a-zA-Z_]\w*)(?=\()/g,(m,c,s,k,n,f)=>c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:k?`<span class="k">${k}</span>`:n?`<span class="n">${n}</span>`:`<span class="f">${f}</span>`)}
+  const a={tick(){if(!started)return;if(i<src.length){i=Math.min(src.length,i+(isPhone()?22:16));el.innerHTML=hl(src.slice(0,i))+'<span class="cursor"></span>';if(el.scrollHeight>el.clientHeight&&i<src.length)el.scrollTop=el.scrollHeight}else if(!a.fin){a.fin=true;el.innerHTML=hl(src);setTimeout(()=>{el.scrollTop=0},800)}},onShow(){started=true}};
+  register(el,a);
+  $('#botKv').innerHTML=[['MARKETS','16 perps',''],['BARS','4h',''],['BOOK','long 1/3, short 1/3',''],['HOLDOUT SHARPE',fm(p3.oos.taker_7bp.sharpe,2),'r'],['HOLDOUT RETURN/YR',fm(p3.oos.taker_7bp.ann_return_pct,1)+'%',''],['HOLDOUT MAX DD',fm(p3.oos.taker_7bp.max_dd_pct,1)+'%','r']].map(([a,b,c])=>`<div class="${c}" style="font-size:18px"><span>${a}</span>${b}</div>`).join('');
+  $('#botSteps').innerHTML=['Pull the last 1,500 closed 1h bars per coin from Binance (public, no keys).','Build the 19 price + volume features, ranked across coins at the bar close.','Blend them with the signs learned from the past, then smooth the score (half-life 24 bars).','Long the top third, short the bottom third, dollar neutral, sized to 10% vol a year.','Print the book. place_order() only prints while DRY_RUN = True.'].map(s=>`<li>${s}</li>`).join('');
+  $('#botNote').innerHTML=`Backtest line: final holdout 2025-07-01 to 2026-10-24, after 7 bp/side taker: Sharpe <b class="r">${fm(p3.oos.taker_7bp.sharpe,2)}</b>, ${fm(p3.oos.taker_7bp.ann_return_pct,1)}% a year, max drawdown ${fm(p3.oos.taker_7bp.max_dd_pct,1)}%. Jim's 20 day trend on the same holdout: <b class="g">${fm(JIM,2)}</b>. Funding payments were not charged. Retrain monthly with prep.py, run_models.py, report.py.`;
+})();
+
+// ===================== TAKEAWAYS =====================
+$('#tk').innerHTML=[
+  ['Start with the one-liner',`Jim's 20 day trend beat every fancy model on the final holdout (<b>${fm(JIM,2)}</b> vs <b>${fm(MAC,2)}</b> Sharpe). Build the simple rule first. Make the machine beat it, or don't ship the machine.`],
+  ['Fees decide fast edges',`13 anomalies were real. <b>0</b> paid a taker. LightGBM's fast edge went from <b>${fm(p3.gbm_raw['0'],2)}</b> to <b>${fm(p3.gbm_raw['7'],2)}</b> at 7 bp a side. Know your cost per side before you test.`],
+  ['Demand proof in every chunk',`An edge with t ≥ 2 in all 4 slices of its history held up <b>${fm(ps['naive_and_strict_every_chunk_t>=2'].hit_rate_pct,0)}%</b> of the time. Pooled only: <b>${fm(ps.naive_not_strict.hit_rate_pct,0)}%</b>. That is Jim's "persisted long enough" as a rule.`],
+  ['Don\'t pick the best N',`In crypto the best in-sample lookback (${sel1.crypto_perps.sign_ls.best_is_N} days, ${fm(sel1.crypto_perps.sign_ls.best_is_sharpe_net,2)}) fell to <b>${fm(sel1.crypto_perps.sign_ls.its_oos_sharpe_net,2)}</b> live. Plain 20 kept <b>${fm(sel1.crypto_perps.sign_ls.n20_oos_sharpe_net,2)}</b>. Always hold out data you never touch.`],
+  ['Trade where the trend still lives',`20 day trend: crypto perps <b>${fm(sel1.crypto_perps.sign_ls.n20_oos_sharpe_net,2)}</b> OOS, commodities <b>${fm(sel1.commodities.sign_ls.n20_oos_sharpe_net,2)}</b>, FX <b>${fm(sel1.fx.sign_ls.n20_oos_sharpe_net,2)}</b>. Old edges die where everyone can see them. Expect half-lives near ${fm(p2.half_life,1)} years.`],
+].map((t,i)=>`<div class="tkc"><div class="tn">WIN ${i+1}</div><h4>${t[0]}</h4><p>${t[1]}</p></div>`).join('');
+$('#leaves').innerHTML='<b>The video leaves out:</b> '+p3.leaves_out.join(', ')+'. Every rule choice for those gaps is Moon Dev\'s, and is labeled.';
+console.log('🌙 Moon Dev Edge Finder dashboard loaded');
+</script>
+</body>
+</html>

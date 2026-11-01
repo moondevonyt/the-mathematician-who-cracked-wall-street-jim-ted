@@ -1,0 +1,3 @@
+# Moon Dev: cached bars and pickles, rebuild with build_bars.py + trend_test.py
+cache/
+__pycache__/

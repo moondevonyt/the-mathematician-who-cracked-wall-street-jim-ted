@@ -1,0 +1,3 @@
+# Moon Dev: cached bars, events and logs (1.3 GB). Rebuild with: python hunt.py && python report.py
+cache/
+__pycache__/
